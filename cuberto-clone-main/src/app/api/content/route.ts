@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface ContentStore {
+  siteVerifiedContent: string | null;
+  siteTagline: string | null;
+  siteSkills: string | null;
+  siteProjects: string | null;
+  uploadedImages: string | null;
+  lastUpdated: number;
+}
+
 // In-memory storage for content (in a real app, you'd use a database)
-let contentStore: any = {
+let contentStore: ContentStore = {
   siteVerifiedContent: null,
   siteTagline: null,
   siteSkills: null,
