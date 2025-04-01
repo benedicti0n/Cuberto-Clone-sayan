@@ -23,24 +23,20 @@ export async function POST(request: NextRequest) {
     
     // Create a safe filename
     const originalName = file.name;
-    const fileExtension = originalName.split('.').pop();
     const timestamp = Date.now();
     const fileName = `${timestamp}-${originalName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    
+
     // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    
+    const buffer = Buffer.from(await file.arrayBuffer());
+
     // Save file to public/uploads directory
     const filePath = path.join(uploadsDir, fileName);
     await writeFile(filePath, buffer);
     
     // Return the URL path to the file (relative to public directory)
-    const fileUrl = `/uploads/${fileName}`;
-    
     return NextResponse.json({ 
       success: true, 
-      fileUrl,
+      fileUrl: `/uploads/${fileName}`,
       fileName,
       originalName
     });
