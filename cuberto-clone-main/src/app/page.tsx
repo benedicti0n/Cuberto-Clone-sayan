@@ -19,7 +19,6 @@ export default function Home() {
   const [activeAccordion, setActiveAccordion] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  // State for cursor behavior with videos
   const [cursorState, setCursorState] = useState({
     isHoveringOnVideo: false,
     isVideoPlaying: false
@@ -41,66 +40,49 @@ export default function Home() {
     { id: '8', title: '6th Semester', description: '', imageUrl: '' }
   ]);
 
-  // Toggle accordion sections on mobile
   const toggleAccordion = (section: string) => {
     setActiveAccordion(activeAccordion === section ? null : section);
   };
 
-  // Cross-browser compatible download handler
   const handleDownload = (e: React.MouseEvent<HTMLAnchorElement>, filePath: string, fileName: string) => {
-    // Prevent default behavior for iOS Safari
     if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream) {
       e.preventDefault();
       
-      // Create a temporary iframe to handle the file download
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
       iframe.src = filePath;
       document.body.appendChild(iframe);
       
-      // Remove iframe after a short delay
       setTimeout(() => {
         document.body.removeChild(iframe);
       }, 1000);
       
       return false;
     }
-    
-    // For other browsers, let the download attribute handle it
-    return true;
+        return true;
   };
 
-  // Check if viewport is mobile
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
     
-    // Set initial value
     handleResize();
     
-    // Add event listener
     window.addEventListener("resize", handleResize);
     
-    // Cleanup
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Handle cross-browser video compatibility
   useEffect(() => {
-    // Find all video elements
     const videoElements = document.querySelectorAll('video');
     
-    // Apply iOS specific attributes programmatically to ensure compatibility
     videoElements.forEach(video => {
-      // These attributes ensure inline playback on iOS
       video.setAttribute('playsinline', 'true');
       video.setAttribute('webkit-playsinline', 'true');
       
-      // Prevent iOS from showing controls
       video.setAttribute('controls', 'false');
       
-      // Handle iOS specific pause/resume
       const handleVisibilityChange = () => {
         if (document.hidden) {
           video.pause();
@@ -117,15 +99,12 @@ export default function Home() {
     });
   }, []);
 
-  // Load content from API and localStorage
   useEffect(() => {
     const loadInitialContent = async () => {
       try {
-        // Try to get content from the API first
         const apiContent = await fetchContent();
         
         if (apiContent) {
-          // Update the about text if available from API
           if (apiContent.siteVerifiedContent) {
             const parsedContent = JSON.parse(apiContent.siteVerifiedContent);
             if (parsedContent.aboutText !== undefined) {
@@ -150,10 +129,8 @@ export default function Home() {
             }
           }
           
-          // Load skills data if available
           if (apiContent.siteSkills) {
             try {
-              // Dispatch a custom event for skills update
               const skillsData = JSON.parse(apiContent.siteSkills);
               const event = new CustomEvent('skillsUpdated', {
                 detail: {
@@ -166,40 +143,33 @@ export default function Home() {
             }
           }
         } else {
-          // Fallback to localStorage if API fails
           const savedContent = localStorage.getItem('siteVerifiedContent');
           if (savedContent) {
             try {
               const parsedContent = JSON.parse(savedContent);
               
-              // Update the about text if available
               if (parsedContent.aboutText !== undefined) {
                 setAboutText(parsedContent.aboutText);
               }
               
-              // Update the tagline if available
               if (parsedContent.tagline !== undefined) {
                 setTagline(parsedContent.tagline);
               }
               
-              // Update the header lines if available
               if (parsedContent.headerTextLines && Array.isArray(parsedContent.headerTextLines)) {
                 if (parsedContent.headerTextLines.length >= 3) {
                   setHeaderLines(parsedContent.headerTextLines);
                 }
               }
               
-              // Update the photo URL if available
               if (parsedContent.photoUrl !== undefined && parsedContent.photoUrl) {
                 setPhotoUrl(parsedContent.photoUrl);
               }
               
-              // Update the resume URL if available
               if (parsedContent.resumeUrl !== undefined && parsedContent.resumeUrl) {
                 setResumeUrl(parsedContent.resumeUrl);
               }
               
-              // Update results if available
               if (parsedContent.results && Array.isArray(parsedContent.results)) {
                 setResults(parsedContent.results);
               }
@@ -208,7 +178,6 @@ export default function Home() {
             }
           }
           
-          // Load skills from localStorage if API fails
           const savedSkills = localStorage.getItem('siteSkills');
           if (savedSkills) {
             try {
@@ -229,10 +198,8 @@ export default function Home() {
       }
     };
 
-    // Load initial content
     loadInitialContent();
 
-    // Set up polling for content updates
     const cleanupPolling = setupContentPolling((data) => {
       if (data.siteVerifiedContent) {
         try {
@@ -262,7 +229,6 @@ export default function Home() {
         }
       }
       
-      // Handle skills updates from API polling
       if (data.siteSkills) {
         try {
           const skillsData = JSON.parse(data.siteSkills);
@@ -278,7 +244,6 @@ export default function Home() {
       }
     });
 
-    // Listen for content updates from admin panel in the same tab
     const handleContentUpdate = (event: CustomEvent) => {
       if (event.detail.type === 'aboutText') {
         setAboutText(event.detail.content);
@@ -295,10 +260,8 @@ export default function Home() {
       }
     };
 
-    // Add event listener for content updates
     window.addEventListener('contentUpdated', handleContentUpdate as EventListener);
 
-    // Listen for storage events (changes from other tabs)
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'siteVerifiedContent' && event.newValue) {
         try {
@@ -331,7 +294,6 @@ export default function Home() {
 
     window.addEventListener('storage', handleStorageChange);
 
-    // Cleanup event listeners
     return () => {
       cleanupPolling();
       window.removeEventListener('contentUpdated', handleContentUpdate as EventListener);
@@ -339,13 +301,10 @@ export default function Home() {
     };
   }, []);
 
-  // Function to format header lines with line breaks
   const formatHeaderLines = (lines: string[]) => {
     if (!lines) return null;
     
-    // Split by newlines and create paragraph elements
     return lines.map((line, index) => {
-      // Replace <strong> tags with actual strong elements
       const formattedLine = line.replace(/<strong>(.*?)<\/strong>/g, (match, content) => {
         return `<strong>${content}</strong>`;
       });
@@ -357,13 +316,10 @@ export default function Home() {
     });
   };
 
-  // Extract filename from path for download
   const getFileNameFromUrl = (url: string) => {
-    // Get the last part of the URL (after the last slash)
     const parts = url.split('/');
     const fileName = parts[parts.length - 1];
     
-    // Return a default name if we couldn't extract one
     return fileName || 'Profile_Photo.jpg';
   };
 
@@ -488,7 +444,6 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Desktop Footer (Multi-column) - Hidden on small screens, visible on md and up */}
           <div className="mt-8 hidden md:grid md:grid-cols-3 md:gap-8">
             <div className="space-y-4">
               <h3 className="font-semibold text-gray-900">My Photo</h3>
