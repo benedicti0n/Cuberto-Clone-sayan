@@ -17,14 +17,14 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const stickyElement = useRef<HTMLDivElement>(null);
   const [activeAccordion, setActiveAccordion] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [_isMobile, setIsMobile] = useState(false);
 
-  const [cursorState, setCursorState] = useState({
+  const [cursorState, _setCursorState] = useState({
     isHoveringOnVideo: false,
     isVideoPlaying: false
   });
 
-  const [headerLines, setHeaderLines] = useState(['I am a sharp,', 'skilled,', 'adept mind.']);
+  const [_headerLines, setHeaderLines] = useState(['I am a sharp,', 'skilled,', 'adept mind.']);
   const [tagline, setTagline] = useState('I am a sharp,');
   const [aboutText, setAboutText] = useState('');
   const [photoUrl, setPhotoUrl] = useState('/images/Photo.jpg');
