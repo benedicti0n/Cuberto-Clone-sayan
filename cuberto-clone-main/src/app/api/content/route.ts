@@ -10,7 +10,7 @@ interface ContentStore {
 }
 
 // In-memory storage for content (in a real app, you'd use a database)
-let contentStore: ContentStore = {
+const contentStore: ContentStore = {
   siteVerifiedContent: null,
   siteTagline: null,
   siteSkills: null,
