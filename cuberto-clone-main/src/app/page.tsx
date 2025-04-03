@@ -22,7 +22,7 @@ export default function Home() {
   const [cursorState, _setCursorState] = useState({
     isHoveringOnVideo: false,
     isVideoPlaying: false
-  });
+  })
 
   const [_headerLines, setHeaderLines] = useState(['I am a sharp,', 'skilled,', 'adept mind.']);
   const [tagline, setTagline] = useState('I am a sharp,');
