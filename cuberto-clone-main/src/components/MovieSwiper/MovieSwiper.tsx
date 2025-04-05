@@ -2,19 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay, Navigation } from 'swiper/modules';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faDatabase, 
-  faServer, 
+import {
+  faDatabase,
+  faServer,
   faCode,
   faFileCode,
   faLaptopCode
 } from '@fortawesome/free-solid-svg-icons';
 import {
   faNodeJs,
-  faReact, 
-  faHtml5, 
-  faCss3Alt, 
-  faJs, 
+  faReact,
+  faHtml5,
+  faCss3Alt,
+  faJs,
   faJava,
   faPython
 } from '@fortawesome/free-brands-svg-icons';
@@ -44,64 +44,64 @@ interface Skill {
 }
 
 // Default skills array
-const defaultSkills: Skill[] = [
-  {
-    id: 1,
-    title: 'MongoDB',
-    description: 'NoSQL database for modern applications with flexible document schemas',
-    icon: faDatabase,
-    color: '#00ED64',
-    bgGradient: 'linear-gradient(to right, #003300, #005500)',
-    image: '/images/1.png',
-    docsUrl: 'https://www.mongodb.com/docs/',
-    proficiencyLevel: 85
-  },
-  {
-    id: 2,
-    title: 'Express.js',
-    description: 'Fast, unopinionated, minimalist web framework for Node.js',
-    icon: faServer,
-    color: '#00ED64',
-    bgGradient: 'linear-gradient(to right, #000033, #000066)',
-    image: '/images/2.png',
-    docsUrl: 'https://expressjs.com/',
-    proficiencyLevel: 85
-  },
-  {
-    id: 3,
-    title: 'React.js',
-    description: 'A JavaScript library for building user interfaces',
-    icon: faReact,
-    color: '#00ED64',
-    bgGradient: 'linear-gradient(to right, #003366, #006699)',
-    image: '/images/3.png',
-    docsUrl: 'https://reactjs.org/docs/getting-started.html',
-    proficiencyLevel: 85
-  },
-  {
-    id: 4,
-    title: 'Node.js',
-    description: 'JavaScript runtime built on Chrome\'s V8 JavaScript engine',
-    icon: faNodeJs,
-    color: '#00ED64',
-    bgGradient: 'linear-gradient(to right, #003300, #006600)',
-    image: '/images/4.png',
-    docsUrl: 'https://nodejs.org/en/docs/',
-    proficiencyLevel: 85
-  }
-];
+// const defaultSkills: Skill[] = [
+//   {
+//     id: 1,
+//     title: 'MongoDB',
+//     description: 'NoSQL database for modern applications with flexible document schemas',
+//     icon: faDatabase,
+//     color: '#00ED64',
+//     bgGradient: 'linear-gradient(to right, #003300, #005500)',
+//     image: '/images/1.png',
+//     docsUrl: 'https://www.mongodb.com/docs/',
+//     proficiencyLevel: 85
+//   },
+//   {
+//     id: 2,
+//     title: 'Express.js',
+//     description: 'Fast, unopinionated, minimalist web framework for Node.js',
+//     icon: faServer,
+//     color: '#00ED64',
+//     bgGradient: 'linear-gradient(to right, #000033, #000066)',
+//     image: '/images/2.png',
+//     docsUrl: 'https://expressjs.com/',
+//     proficiencyLevel: 85
+//   },
+//   {
+//     id: 3,
+//     title: 'React.js',
+//     description: 'A JavaScript library for building user interfaces',
+//     icon: faReact,
+//     color: '#00ED64',
+//     bgGradient: 'linear-gradient(to right, #003366, #006699)',
+//     image: '/images/3.png',
+//     docsUrl: 'https://reactjs.org/docs/getting-started.html',
+//     proficiencyLevel: 85
+//   },
+//   {
+//     id: 4,
+//     title: 'Node.js',
+//     description: 'JavaScript runtime built on Chrome\'s V8 JavaScript engine',
+//     icon: faNodeJs,
+//     color: '#00ED64',
+//     bgGradient: 'linear-gradient(to right, #003300, #006600)',
+//     image: '/images/4.png',
+//     docsUrl: 'https://nodejs.org/en/docs/',
+//     proficiencyLevel: 85
+//   }
+// ];
 
 const MovieSwiper: React.FC = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [showSection, setShowSection] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
-  
+
   useEffect(() => {
     const loadSkills = async () => {
       try {
         // Try to get skills from the API first
         const apiContent = await fetchContent();
-        
+
         if (apiContent && apiContent.siteSkills) {
           const parsedSkills = JSON.parse(apiContent.siteSkills);
           if (parsedSkills && Array.isArray(parsedSkills) && parsedSkills.length > 0) {
@@ -130,7 +130,7 @@ const MovieSwiper: React.FC = () => {
         }
       } catch (error) {
         console.error('Error loading skills:', error);
-        
+
         // Fallback to localStorage if API fails
         const savedSkills = localStorage.getItem('siteSkills');
         if (savedSkills) {
@@ -156,7 +156,7 @@ const MovieSwiper: React.FC = () => {
 
     // Load initial skills
     loadSkills();
-    
+
     // Set up polling for real-time updates
     const cleanupPolling = setupContentPolling((data) => {
       if (data.siteSkills) {
@@ -175,7 +175,7 @@ const MovieSwiper: React.FC = () => {
         }
       }
     });
-    
+
     // Listen for content updates from admin panel in the same tab
     const handleContentUpdate = (event: CustomEvent) => {
       if (event.detail.type === 'skills') {
@@ -189,7 +189,7 @@ const MovieSwiper: React.FC = () => {
         }
       }
     };
-    
+
     // Listen for skills updates from the Home component
     const handleSkillsUpdated = (event: CustomEvent) => {
       if (event.detail.skills) {
@@ -203,16 +203,17 @@ const MovieSwiper: React.FC = () => {
         }
       }
     };
-    
+
     // Add event listeners
     window.addEventListener('contentUpdated', handleContentUpdate as EventListener);
     window.addEventListener('skillsUpdated', handleSkillsUpdated as EventListener);
-    
+
     return () => {
       if (cleanupPolling) cleanupPolling();
       window.removeEventListener('contentUpdated', handleContentUpdate as EventListener);
       window.removeEventListener('skillsUpdated', handleSkillsUpdated as EventListener);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Helper function to map admin skills to component skills
@@ -222,31 +223,31 @@ const MovieSwiper: React.FC = () => {
       setShowSection(false);
       return;
     }
-    
+
     console.log('Admin skills received:', adminSkills);
-    
+
     const mappedSkills = adminSkills.map((skill: any, index: number) => {
       // Get the appropriate icon based on the skill.icon string
-      let iconToUse = getIconFromString(skill.icon);
-      
+      const iconToUse = getIconFromString(skill.icon);
+
       // Ensure background image path is valid
-      const backgroundImage = skill.backgroundImage && skill.backgroundImage.trim() !== '' 
-        ? skill.backgroundImage 
+      const backgroundImage = skill.backgroundImage && skill.backgroundImage.trim() !== ''
+        ? skill.backgroundImage
         : `/images/${(index % 4) + 1}.png`;
-      
+
       // Ensure learn more link is valid
       let learnMoreLink = skill.learnMoreLink && skill.learnMoreLink.trim() !== ''
         ? skill.learnMoreLink
         : 'https://www.google.com/search?q=' + encodeURIComponent(skill.title || 'Skill');
-      
+
       // Add https:// if the link doesn't have a protocol
       if (learnMoreLink && !learnMoreLink.startsWith('http://') && !learnMoreLink.startsWith('https://')) {
         learnMoreLink = 'https://' + learnMoreLink;
       }
-      
+
       console.log(`Skill ${index} background image:`, backgroundImage);
       console.log(`Skill ${index} learn more link:`, learnMoreLink);
-      
+
       return {
         id: index + 1,
         title: skill.title || 'Skill',
@@ -259,9 +260,9 @@ const MovieSwiper: React.FC = () => {
         proficiencyLevel: skill.proficiencyLevel || 85
       };
     });
-    
+
     console.log('Mapped skills:', mappedSkills);
-    
+
     // Only update if we have skills to show
     if (mappedSkills.length > 0) {
       setSkills(mappedSkills);
@@ -275,7 +276,7 @@ const MovieSwiper: React.FC = () => {
   // Helper function to get the correct icon from string
   const getIconFromString = (iconString: string) => {
     if (!iconString) return faCode; // Default icon
-    
+
     // Handle brand icons
     if (iconString.includes('fa-java') || iconString.includes('fab fa-java')) return faJava;
     if (iconString.includes('fa-python') || iconString.includes('fab fa-python')) return faPython;
@@ -284,13 +285,13 @@ const MovieSwiper: React.FC = () => {
     if (iconString.includes('fa-html5') || iconString.includes('fab fa-html5')) return faHtml5;
     if (iconString.includes('fa-css3') || iconString.includes('fab fa-css3')) return faCss3Alt;
     if (iconString.includes('fa-js') || iconString.includes('fab fa-js')) return faJs;
-    
+
     // Handle solid icons
     if (iconString.includes('fa-database')) return faDatabase;
     if (iconString.includes('fa-server')) return faServer;
     if (iconString.includes('fa-file-code')) return faFileCode;
     if (iconString.includes('fa-laptop-code')) return faLaptopCode;
-    
+
     // Default to code icon
     return faCode;
   };
@@ -353,32 +354,31 @@ const MovieSwiper: React.FC = () => {
         >
           {skills.map((skill, index) => (
             <SwiperSlide key={skill.id} className="relative w-full h-full overflow-hidden shadow-lg swiper-slide-content transition-all duration-500">
-              <div 
+              <div
                 className="absolute inset-0 w-full h-full bg-cover bg-center"
                 style={{ backgroundImage: `url(${skill.image})` }}
               >
                 {/* Conditional gradient overlay - only show on non-active slides */}
-                <div 
-                  className={`absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 transition-opacity duration-500 ${
-                    index === activeIndex ? 'opacity-0' : 'opacity-100'
-                  }`}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 transition-opacity duration-500 ${index === activeIndex ? 'opacity-0' : 'opacity-100'
+                    }`}
                 ></div>
               </div>
-              
+
               <div className="absolute bottom-16 md:bottom-20 left-6 md:left-10 max-w-2xl z-10 text-white">
                 <div className="mb-2 md:mb-4">
-                  <FontAwesomeIcon 
-                    icon={skill.icon} 
-                    style={{ color: skill.color }} 
+                  <FontAwesomeIcon
+                    icon={skill.icon}
+                    style={{ color: skill.color }}
                     className="text-5xl md:text-7xl lg:text-8xl"
                   />
                 </div>
                 <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-2 md:mb-3">{skill.title}</h2>
                 <p className="text-sm md:text-lg mb-6 md:mb-8">{skill.description}</p>
-                <a 
-                  href={skill.docsUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href={skill.docsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-white text-black py-2 px-6 md:py-3 md:px-8 rounded-full text-sm md:text-base font-medium hover:bg-opacity-90 transition-all inline-flex items-center"
                 >
                   Learn more
@@ -392,11 +392,11 @@ const MovieSwiper: React.FC = () => {
                 <div className="flex items-center bg-white/30 backdrop-blur-sm py-0.5 px-2 md:py-1 md:px-3 rounded-full">
                   <span className="text-white text-xs md:text-sm mr-1 md:mr-2">Proficiency:</span>
                   <div className="w-16 md:w-24 bg-white/30 rounded-full h-1.5 md:h-2">
-                    <div 
-                      className="h-1.5 md:h-2 rounded-full" 
-                      style={{ 
-                        width: `${skill.proficiencyLevel}%`, 
-                        backgroundColor: skill.color 
+                    <div
+                      className="h-1.5 md:h-2 rounded-full"
+                      style={{
+                        width: `${skill.proficiencyLevel}%`,
+                        backgroundColor: skill.color
                       }}
                     ></div>
                   </div>
@@ -410,7 +410,7 @@ const MovieSwiper: React.FC = () => {
         <div className="swiper-button-prev !text-white !opacity-70 !w-8 !h-8 md:!w-12 md:!h-12 !left-1 md:!left-6"></div>
         <div className="swiper-button-next !text-white !opacity-70 !w-8 !h-8 md:!w-12 md:!h-12 !right-1 md:!right-6"></div>
       </section>
-      
+
       {/* Pagination placed in the gap between expertise and verified sections */}
       <div className="w-full py-6 bg-white">
         <div className="swiper-custom-pagination flex justify-center items-center my-2">

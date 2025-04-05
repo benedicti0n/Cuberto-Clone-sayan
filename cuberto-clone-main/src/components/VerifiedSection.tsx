@@ -10,6 +10,7 @@ const ResultCard = ({ title, description, imageUrl }: {
 }) => {
   return (
     <div className="result-card">
+      {/* eslint-disable-next-line */}
       <img src={imageUrl} alt={title} />
       <h3>{title}</h3>
       <p>{description}</p>
@@ -85,14 +86,15 @@ export default function VerifiedSection() {
       <div className="about-section">
         <h2>About Me</h2>
         <p>{content.aboutText}</p>
+        {/* eslint-disable-next-line */}
         <img src={content.photoUrl} alt="Profile" />
       </div>
-      
+
       <div className="results-section">
         <h2>Academic Results</h2>
         <div className="results-grid">
           {content.results.map(result => (
-            <ResultCard 
+            <ResultCard
               key={result.id}
               title={result.title}
               description={result.description}
@@ -101,12 +103,12 @@ export default function VerifiedSection() {
           ))}
         </div>
       </div>
-      
+
       <div className="faqs-section">
         <h2>Frequently Asked Questions</h2>
         <div className="faqs-list">
           {content.faqs.map(faq => (
-            <FAQItem 
+            <FAQItem
               key={faq.id}
               question={faq.question}
               answer={faq.answer}

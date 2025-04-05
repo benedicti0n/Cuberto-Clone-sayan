@@ -82,17 +82,17 @@ const Cursor: React.FC<CursorProps> = ({
         const checkScreenSize = () => {
             setIsLargeScreen(window.innerWidth >= 1024); // 1024px is typical laptop size
         };
-        
+
         // Initial check
         checkScreenSize();
-        
+
         // Add resize listener
         window.addEventListener('resize', checkScreenSize);
-        
+
         // Only add mouse events if on large screen
         if (isLargeScreen) {
             window.addEventListener("mousemove", manageMouseMove);
-            
+
             if (stickyElement?.current) {
                 stickyElement.current.addEventListener("mouseover", manageMouseOver);
                 stickyElement.current.addEventListener("mouseleave", manageMouseLeave);
@@ -101,16 +101,18 @@ const Cursor: React.FC<CursorProps> = ({
 
         return () => {
             window.removeEventListener('resize', checkScreenSize);
-            
+
             if (isLargeScreen) {
                 window.removeEventListener("mousemove", manageMouseMove);
-                
+
                 if (stickyElement?.current) {
                     stickyElement.current.removeEventListener("mouseover", manageMouseOver);
+                    // eslint-disable-next-line
                     stickyElement.current.removeEventListener("mouseleave", manageMouseLeave);
                 }
             }
         };
+        //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isHovered, stickyElement, isLargeScreen]);
 
     const template = ({ rotate, scaleX, scaleY }: { rotate: string; scaleX: number; scaleY: number }) => {
@@ -121,7 +123,7 @@ const Cursor: React.FC<CursorProps> = ({
     const videoHoverClass = isHoveringOnVideo ?
         'bg-white border-2 border-white opacity-50' :
         'bg-white';
-    
+
     // Don't render cursor on small screens
     if (!isLargeScreen) return null;
 

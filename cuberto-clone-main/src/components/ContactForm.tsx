@@ -23,7 +23,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
     message: '',
     otp: ''
   });
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -53,6 +53,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
     if (isOnline && isVisible) {
       checkApiStatus();
     }
+    {/* eslint-disable-next-line react-hooks/exhaustive-deps*/ }
   }, [isOnline, isVisible]);
 
   // Function to check API status with retry logic
@@ -148,15 +149,15 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
       error: 'bg-red-500',
       info: 'bg-blue-500'
     };
-    
+
     // Create toast element
     const toast = document.createElement('div');
     toast.className = `${colors[type]} text-white py-2 px-4 rounded shadow-lg fixed top-4 right-4 z-50 transition-opacity duration-300`;
     toast.textContent = message;
-    
+
     // Add to DOM
     document.body.appendChild(toast);
-    
+
     // Remove after 5 seconds
     setTimeout(() => {
       toast.style.opacity = '0';
@@ -206,23 +207,23 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
       const signal = controller.signal;
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const response = await fetch(url, { 
-        ...options, 
+      const response = await fetch(url, {
+        ...options,
         signal,
         // Prevent caching issues on mobile
-        cache: 'no-cache', 
+        cache: 'no-cache',
       });
-      
+
       clearTimeout(timeoutId);
       return response;
     } catch (error) {
       if (retries <= 0) throw error;
-      
+
       console.log(`Retrying... ${retries} attempts left`);
       // Add exponential backoff
       const backoffDelay = Math.min(1000 * Math.pow(2, MAX_RETRIES - retries), 5000);
       await new Promise(resolve => setTimeout(resolve, backoffDelay));
-      
+
       return fetchWithRetry(url, options, retries - 1);
     }
   };
@@ -258,7 +259,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
       // Use the configured API URL with retry logic
       const response = await fetchWithRetry(`${API_BASE_URL}/submit`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           // Add a timestamp to prevent caching issues
           'Cache-Control': 'no-cache',
@@ -329,7 +330,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
       // Use the configured API URL with retry logic
       const response = await fetchWithRetry(`${API_BASE_URL}/verify`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           // Add a timestamp to prevent caching issues
           'Cache-Control': 'no-cache',
@@ -401,20 +402,19 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
       animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : 20 }}
       exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.3 }}
-      className={`fixed right-0 top-0 h-full w-full sm:w-[450px] md:w-[500px] bg-white shadow-lg ${
-        isVisible ? "block" : "hidden"
-      }`}
+      className={`fixed right-0 top-0 h-full w-full sm:w-[450px] md:w-[500px] bg-white shadow-lg ${isVisible ? "block" : "hidden"
+        }`}
       style={{ zIndex: 50, backgroundColor: "#ffffff" }}
     >
       <div className="flex flex-col h-full p-4 sm:p-6 relative overflow-y-auto">
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-gray-100 transition-colors"
           aria-label="Close contact form"
         >
           <X size={20} />
         </button>
-        
+
         {/* Loading overlay */}
         {isLoading && (
           <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
@@ -429,16 +429,16 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
         {!isOnline && (
           <div className="bg-red-50 p-2 rounded-md mb-4 mt-8 flex items-center">
             <WifiOff size={16} className="text-red-500 mr-2 flex-shrink-0" />
-            <p className="text-xs text-red-600">You're offline. Please check your connection.</p>
+            <p className="text-xs text-red-600">{`You're offline. Please check your connection.`}</p>
           </div>
         )}
-        
+
         {showOTP ? (
           <div className="flex flex-col mt-10">
             <h2 className="text-xl sm:text-2xl font-light-regular mb-4">Verify OTP</h2>
-            
+
             <div className="bg-gray-50 p-3 rounded-md mb-4">
-              <p className="text-sm text-gray-600">We've sent a verification code to your email.</p>
+              <p className="text-sm text-gray-600">{`We've sent a verification code to your email.`}</p>
               <div className="mt-1 text-sm">
                 <span className="text-gray-500">Time: </span>
                 <span className={`font-medium ${otpTimer < 60 ? 'text-red-500' : 'text-gray-700'}`}>
@@ -446,14 +446,14 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
                 </span>
               </div>
             </div>
-            
+
             <div className="flex flex-col gap-1 mb-4">
               <label htmlFor="otp" className="text-sm text-black/60 font-light-regular">Enter OTP</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 id="otp"
                 name="otp"
-                placeholder="Enter code" 
+                placeholder="Enter code"
                 className="p-2.5 border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black/20 text-center text-lg tracking-wider"
                 value={formData.otp}
                 onChange={handleChange}
@@ -462,26 +462,26 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
                 pattern="[0-9]*"
               />
             </div>
-            
-            <button 
-              onClick={handleVerifyOTP} 
+
+            <button
+              onClick={handleVerifyOTP}
               className="py-2.5 px-5 bg-black text-white rounded-md hover:bg-black/80 transition-colors"
               disabled={isLoading || !isOnline}
             >
               Verify
             </button>
-            
+
             <div className="flex justify-between mt-3">
-              <button 
-                onClick={resetForm} 
+              <button
+                onClick={resetForm}
                 className="py-1.5 px-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-gray-700 text-sm"
                 disabled={isLoading}
               >
                 Cancel
               </button>
-              
-              <button 
-                onClick={requestNewOTP} 
+
+              <button
+                onClick={requestNewOTP}
                 className={`py-1.5 px-3 text-sm ${canResend ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-500'} rounded-md transition-colors`}
                 disabled={isLoading || !canResend || !isOnline}
               >
@@ -492,15 +492,15 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
         ) : (
           <div>
             <h2 className="text-xl sm:text-2xl font-light-regular mt-8 mb-4">Contact us</h2>
-            
+
             <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
               <div className="flex flex-col gap-1">
                 <label htmlFor="name" className="text-xs text-black/60 font-light-regular">Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   id="name"
-                  name="name" 
-                  placeholder="Your name" 
+                  name="name"
+                  placeholder="Your name"
                   className={`p-2 border ${formErrors.name ? 'border-red-400' : 'border-gray-200'} rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black/20`}
                   value={formData.name}
                   onChange={handleChange}
@@ -508,15 +508,15 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
                 />
                 {formErrors.name && <p className="text-red-500 text-xs">{formErrors.name}</p>}
               </div>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
                   <label htmlFor="email" className="text-xs text-black/60 font-light-regular">Email</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     id="email"
-                    name="email" 
-                    placeholder="Your email" 
+                    name="email"
+                    placeholder="Your email"
                     className={`p-2 border ${formErrors.email ? 'border-red-400' : 'border-gray-200'} rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black/20`}
                     value={formData.email}
                     onChange={handleChange}
@@ -525,14 +525,14 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
                   />
                   {formErrors.email && <p className="text-red-500 text-xs">{formErrors.email}</p>}
                 </div>
-                
+
                 <div className="flex flex-col gap-1">
                   <label htmlFor="phone" className="text-xs text-black/60 font-light-regular">Phone</label>
-                  <input 
-                    type="tel" 
+                  <input
+                    type="tel"
                     id="phone"
-                    name="phone" 
-                    placeholder="Phone number" 
+                    name="phone"
+                    placeholder="Phone number"
                     className={`p-2 border ${formErrors.phone ? 'border-red-400' : 'border-gray-200'} rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black/20`}
                     value={formData.phone}
                     onChange={handleChange}
@@ -542,14 +542,14 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
                   {formErrors.phone && <p className="text-red-500 text-xs">{formErrors.phone}</p>}
                 </div>
               </div>
-              
+
               <div className="flex flex-col gap-1">
                 <label htmlFor="subject" className="text-xs text-black/60 font-light-regular">Subject</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   id="subject"
-                  name="subject" 
-                  placeholder="Subject" 
+                  name="subject"
+                  placeholder="Subject"
                   className={`p-2 border ${formErrors.subject ? 'border-red-400' : 'border-gray-200'} rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black/20`}
                   value={formData.subject}
                   onChange={handleChange}
@@ -557,14 +557,14 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
                 />
                 {formErrors.subject && <p className="text-red-500 text-xs">{formErrors.subject}</p>}
               </div>
-              
+
               <div className="flex flex-col gap-1">
                 <label htmlFor="message" className="text-xs text-black/60 font-light-regular">Message</label>
-                <textarea 
+                <textarea
                   id="message"
-                  name="message" 
-                  rows={3} 
-                  placeholder="Your message" 
+                  name="message"
+                  rows={3}
+                  placeholder="Your message"
                   className={`p-2 border ${formErrors.message ? 'border-red-400' : 'border-gray-200'} rounded-md bg-gray-50 resize-none focus:outline-none focus:ring-2 focus:ring-black/20`}
                   value={formData.message}
                   onChange={handleChange}
@@ -572,9 +572,9 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
                 />
                 {formErrors.message && <p className="text-red-500 text-xs">{formErrors.message}</p>}
               </div>
-              
-              <button 
-                type="submit" 
+
+              <button
+                type="submit"
                 className="mt-2 py-2.5 px-5 bg-black text-white rounded-md hover:bg-black/80 transition-colors"
                 disabled={isLoading || !isOnline}
               >
@@ -583,7 +583,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
             </form>
           </div>
         )}
-        
+
         {!showOTP && (
           <div className="mt-auto pt-4">
             <p className="text-xs text-black/60">You can also reach us at:</p>
