@@ -412,7 +412,7 @@ export default function ExpertiseManager() {
               onChange={handleInputChange}
               required
             />
-            <small>Enter the Font Awesome icon code (e.g., 'fa-code', 'fa-palette')</small>
+            <small>{`Enter the Font Awesome icon code (e.g., 'fa-code', 'fa-palette')`}</small>
           </div>
           
           <div className={styles.formGroup}>
@@ -482,7 +482,7 @@ export default function ExpertiseManager() {
           </div>
           
           <div className={styles.formGroup}>
-            <label htmlFor="proficiencyLevel">Proficiency Level (%):</label>
+            <label htmlFor="proficiencyLevel">{`Proficiency Level (%):`}</label>
             <input
               type="number"
               id="proficiencyLevel"

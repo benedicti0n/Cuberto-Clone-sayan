@@ -1,4 +1,5 @@
 "use client";
+
 import { useRef, useState, useEffect } from "react";
 import Cursor from "@/components/Cursors/Cursor";
 import Landingpage from "@/components/LandingPage/Landingpage";
@@ -17,13 +18,14 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const stickyElement = useRef<HTMLDivElement>(null);
   const [activeAccordion, setActiveAccordion] = useState<string | null>(null);
+  // eslint-disable-next-line
   const [isMobile, setIsMobile] = useState(false);
 
   const [cursorState] = useState({
     isHoveringOnVideo: false,
     isVideoPlaying: false
   })
-
+// eslint-disable-next-line
   const [headerLines, setHeaderLines] = useState(['I am a sharp,', 'skilled,', 'adept mind.']);
   const [tagline, setTagline] = useState('I am a sharp,');
   const [aboutText, setAboutText] = useState('');
@@ -44,6 +46,7 @@ export default function Home() {
     setActiveAccordion(activeAccordion === section ? null : section);
   };
 
+  // eslint-disable-next-line
   const handleDownload = (e: React.MouseEvent<HTMLAnchorElement>, filePath: string, fileName: string) => {
     if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as { MSStream: any }).MSStream) {
       e.preventDefault();
@@ -301,20 +304,20 @@ export default function Home() {
     };
   }, []);
 
-  const formatHeaderLines = (lines: string[]) => {
-    if (!lines) return null;
+  // const formatHeaderLines = (lines: string[]) => {
+  //   if (!lines) return null;
     
-    return lines.map((line, index) => {
-      const formattedLine = line.replace(/<strong>(.*?)<\/strong>/g, (match, content) => {
-        return `<strong>${content}</strong>`;
-      });
+  //   return lines.map((line, index) => {
+  //     const formattedLine = line.replace(/<strong>(.*?)<\/strong>/g, (match, content) => {
+  //       return `<strong>${content}</strong>`;
+  //     });
       
-      return (
-        <p key={index} className={index === 0 ? "font-medium" : ""} 
-           dangerouslySetInnerHTML={{ __html: formattedLine }} />
-      );
-    });
-  };
+  //     return (
+  //       <p key={index} className={index === 0 ? "font-medium" : ""} 
+  //          dangerouslySetInnerHTML={{ __html: formattedLine }} />
+  //     );
+  //   });
+  // };
 
   const getFileNameFromUrl = (url: string) => {
     const parts = url.split('/');
