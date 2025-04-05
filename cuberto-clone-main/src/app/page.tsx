@@ -17,14 +17,14 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const stickyElement = useRef<HTMLDivElement>(null);
   const [activeAccordion, setActiveAccordion] = useState<string | null>(null);
-  const [_isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const [cursorState, _setCursorState] = useState({
+  const [cursorState] = useState({
     isHoveringOnVideo: false,
     isVideoPlaying: false
   })
 
-  const [_headerLines, setHeaderLines] = useState(['I am a sharp,', 'skilled,', 'adept mind.']);
+  const [headerLines, setHeaderLines] = useState(['I am a sharp,', 'skilled,', 'adept mind.']);
   const [tagline, setTagline] = useState('I am a sharp,');
   const [aboutText, setAboutText] = useState('');
   const [photoUrl, setPhotoUrl] = useState('/images/Photo.jpg');
@@ -45,7 +45,7 @@ export default function Home() {
   };
 
   const handleDownload = (e: React.MouseEvent<HTMLAnchorElement>, filePath: string, fileName: string) => {
-    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream) {
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as { MSStream: any }).MSStream) {
       e.preventDefault();
       
       const iframe = document.createElement('iframe');
