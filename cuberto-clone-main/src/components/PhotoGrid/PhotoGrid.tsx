@@ -24,9 +24,11 @@ interface PhotoGridProps {
 const PhotoGrid: React.FC<PhotoGridProps> = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [showSection, setShowSection] = useState(true);
+  //eslint-disable-next-line
   const [activeInfoId, setActiveInfoId] = useState<string | null>(null);
   const [showInfoIndex, setShowInfoIndex] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  //eslint-disable-next-line
   const [isClient, setIsClient] = useState(false);
 
   // Set isClient to true when component mounts on client
@@ -39,7 +41,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
     const handleProjectUpdate = (updatedProjects: Project[]) => {
       const currentIds = projects.map(p => p.id).sort().join(',');
       const newIds = updatedProjects.map(p => p.id).sort().join(',');
-      
+
       // Only update if the list of IDs changed or if we have no projects yet
       if (currentIds !== newIds || projects.length === 0) {
         console.log('PhotoGrid - Setting updated projects:', updatedProjects.length);
@@ -53,7 +55,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
         // Try to get projects from the API first
         const apiContent = await fetchContent();
         console.log('PhotoGrid - API Content received:', apiContent);
-        
+
         if (apiContent && apiContent.siteProjects) {
           try {
             const parsedProjects = JSON.parse(apiContent.siteProjects);
@@ -79,21 +81,21 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
         loadFromLocalStorage();
       }
     };
-    
+
     // Add helper function to read safely from localStorage with compression support
     const safelyReadFromLocalStorage = (key: string) => {
       try {
         // Check if we have compressed data
         const isCompressed = localStorage.getItem(`${key}_compressed`) === 'true';
-        
+
         // Get the data
         const data = localStorage.getItem(key);
-        
+
         if (!data) return null;
-        
+
         // If not compressed, return as is
         if (!isCompressed) return data;
-        
+
         // For compressed data, we don't need to decompress since our compression just
         // optimizes content but keeps the JSON format intact
         return data;
@@ -108,12 +110,12 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
       try {
         const savedProjects = safelyReadFromLocalStorage('siteProjects');
         console.log('PhotoGrid - Local storage projects:', savedProjects ? 'found' : 'not found');
-        
+
         if (savedProjects) {
           try {
             const parsedProjects = JSON.parse(savedProjects);
             console.log('PhotoGrid - Parsed projects from localStorage:', parsedProjects);
-            
+
             if (Array.isArray(parsedProjects) && parsedProjects.length > 0) {
               handleProjectUpdate(parsedProjects);
             } else {
@@ -134,7 +136,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
 
     // Load initial projects
     loadProjects();
-    
+
     // Set up polling for real-time updates
     const cleanupPolling = setupContentPolling((data) => {
       if (data.siteProjects) {
@@ -149,19 +151,19 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
         }
       }
     });
-    
+
     // Listen for project updates
     const handleProjectsUpdated = (event: CustomEvent) => {
       console.log('PhotoGrid - Projects updated event received:', event.detail);
       if (event.detail && event.detail.projects) {
         const updatedProjects = event.detail.projects;
-        
+
         if (Array.isArray(updatedProjects) && updatedProjects.length > 0) {
           handleProjectUpdate(updatedProjects);
         }
       }
     };
-    
+
     // Listen for content updates
     const handleContentUpdate = (event: CustomEvent) => {
       if (event.detail.type === 'projects') {
@@ -172,7 +174,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
         }
       }
     };
-    
+
     // Listen for storage events (changes from other tabs)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'siteProjects' && e.newValue) {
@@ -204,16 +206,18 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
               // Compare IDs instead of full objects to reduce flickering
               const currentIds = projects.map(p => p.id).sort().join(',');
               const newIds = parsedProjects.map(p => p.id).sort().join(',');
-              
+
               if (currentIds !== newIds) {
                 console.log('PhotoGrid - Detected change in localStorage during interval check');
                 handleProjectUpdate(parsedProjects);
               }
             }
+            //eslint-disable-next-line
           } catch (error) {
             // Silent catch - just for polling
           }
         }
+        //eslint-disable-next-line
       } catch (error) {
         // Silent catch for localStorage errors
       }
@@ -228,10 +232,12 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
     };
   }, []); // Remove projects from dependencies to prevent re-renders
 
+  //eslint-disable-next-line
   const handleInfoClick = (id: string) => {
     setActiveInfoId(prevId => prevId === id ? null : id);
   };
 
+  //eslint-disable-next-line
   const handleInfoMouseEnter = (id: string) => {
     // Only activate on larger screens (desktop)
     if (window.innerWidth >= 768) {
@@ -239,6 +245,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
     }
   };
 
+  //eslint-disable-next-line
   const handleInfoMouseLeave = () => {
     // Only deactivate on larger screens (desktop)
     if (window.innerWidth >= 768) {
@@ -267,11 +274,11 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
   // Parse CSS style string into object
   const parseStyleString = (styleString: string): React.CSSProperties => {
     if (!styleString) return {};
-    
+
     try {
       // Convert CSS string to object
       const styleObj: Record<string, string> = {};
-      
+
       // Split by semicolons and process each declaration
       styleString.split(';').forEach(declaration => {
         const [property, value] = declaration.split(':').map(str => str.trim());
@@ -281,7 +288,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
           styleObj[camelProperty] = value;
         }
       });
-      
+
       return styleObj as React.CSSProperties;
     } catch (error) {
       console.error('Error parsing style string:', error);
@@ -294,10 +301,10 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768); // 768px is typical md breakpoint
     };
-    
+
     checkIfMobile();
     window.addEventListener('resize', checkIfMobile);
-    
+
     return () => {
       window.removeEventListener('resize', checkIfMobile);
     };
@@ -323,6 +330,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
   const DEFAULT_PLACEHOLDER = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"%3E%3Crect width="200" height="200" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="20" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E';
 
   // Prevent flicker-inducing re-renders when content hasn't changed
+  //eslint-disable-next-line react-hooks/exhaustive-deps
   const memoizedProjects = useMemo(() => projects, [projects.map(p => p.id).join(',')]);
 
   if (!showSection) {
@@ -333,8 +341,8 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
     <section className="w-full bg-white">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {memoizedProjects.map((project, index) => (
-          <div 
-            key={project.id} 
+          <div
+            key={project.id}
             className="relative overflow-hidden transition-all duration-300 hover:opacity-95 h-[500px] md:h-[500px] lg:h-[650px] xl:h-[585px]"
             style={project.backgroundStyle ? parseStyleString(project.backgroundStyle) : {
               backgroundColor: '#ebf9ff',
@@ -344,8 +352,9 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
           >
             <div className="absolute inset-0 flex items-center justify-center z-0">
               {project.imageUrl ? (
-                <img 
-                  src={project.imageUrl} 
+                // eslint-disable-next-line
+                <img
+                  src={project.imageUrl}
                   alt={project.title}
                   className="w-full h-full object-contain transition-all duration-500"
                   loading="lazy"
@@ -353,9 +362,9 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
                   onError={(e) => {
                     console.error('PhotoGrid - Image failed to load:', project.title);
                     console.error('Image URL begins with:', project.imageUrl?.substring(0, 30));
-                    
+
                     const imgElement = e.target as HTMLImageElement;
-                    
+
                     // If it's a data URL that failed (unlikely), log it and use placeholder
                     if (project.imageUrl?.startsWith('data:')) {
                       console.error('Data URL image failed to load');
@@ -363,7 +372,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
                       imgElement.onerror = null;
                       return;
                     }
-                    
+
                     // If it's a regular URL, try different paths
                     const originalSrc = project.imageUrl;
                     if (originalSrc) {
@@ -373,7 +382,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
                         imgElement.src = `/${originalSrc}`;
                         return;
                       }
-                      
+
                       // 2. If it's a relative path with leading slash, try without it
                       if (originalSrc.startsWith('/') && !originalSrc.startsWith('//')) {
                         console.log('PhotoGrid - Trying without / prefix');
@@ -381,7 +390,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
                         return;
                       }
                     }
-                    
+
                     // If all paths fail, use inline SVG directly
                     console.log('PhotoGrid - Using inline SVG placeholder');
                     imgElement.src = DEFAULT_PLACEHOLDER;
@@ -390,25 +399,26 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
                 />
               ) : (
                 <div className="flex items-center justify-center w-full h-full bg-gray-100">
-                  <img 
+                  {/* eslint-disable-next-line */}
+                  <img
                     src={DEFAULT_PLACEHOLDER}
-                    alt="No image available" 
+                    alt="No image available"
                     className="w-1/2 h-1/2 object-contain opacity-50"
                   />
                 </div>
               )}
             </div>
 
-            <div 
+            <div
               className="absolute inset-0 flex flex-col items-center justify-between h-full p-6 text-center z-10"
               style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
             >
-              <div 
+              <div
                 className={`absolute top-0 left-0 w-16 h-16 flex items-start justify-start p-4 ${!isMobile ? 'hover-trigger' : ''}`}
                 onMouseEnter={() => handleMouseEnter(index)}
                 onMouseLeave={handleMouseLeave}
               >
-                <button 
+                <button
                   className="flex items-center justify-center w-8 h-8 rounded-full transition-all shadow-sm"
                   style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
                   onClick={() => toggleInfo(index)}
@@ -418,16 +428,16 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
               </div>
 
               {project.projectUrl && (
-                <a 
-                  href={project.projectUrl} 
-                  target="_blank" 
+                <a
+                  href={project.projectUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
-                  className="absolute flex items-center justify-center w-16 h-16 rounded-full transition-all hover:bg-blue-600" 
-                  style={{ 
-                    backgroundColor: 'rgba(59, 130, 246, 0.8)', 
-                    top: '50%', 
-                    left: '50%', 
-                    transform: 'translate(-50%, -50%)' 
+                  className="absolute flex items-center justify-center w-16 h-16 rounded-full transition-all hover:bg-blue-600"
+                  style={{
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)'
                   }}
                 >
                   <FontAwesomeIcon icon={faPlay} className="text-white text-2xl" />
@@ -438,29 +448,29 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
               <p className="text-lg mb-4 text-white">{project.footer}</p>
 
               {showInfoIndex === index && (
-                <div 
+                <div
                   className="absolute inset-0 z-20 flex flex-col p-8 overflow-y-auto"
                   style={{ backgroundColor: 'rgba(245, 245, 247, 0.95)' }}
                   onMouseEnter={() => !isMobile && setShowInfoIndex(index)}
                   onMouseLeave={() => !isMobile && setShowInfoIndex(null)}
                 >
                   {isMobile && (
-                    <button 
+                    <button
                       className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 transition-all"
                       onClick={() => toggleInfo(index)}
                     >
                       <FontAwesomeIcon icon={faCircleInfo} className="text-gray-700" />
                     </button>
                   )}
-                  
+
                   <div className="mt-8">
                     <h3 className="text-3xl font-semibold mb-4 text-gray-900">{project.title}</h3>
-                    
+
                     <div className="mb-6">
                       <h4 className="text-xl font-medium mb-2 text-gray-800">Description</h4>
                       <p className="text-lg text-gray-700">{project.description}</p>
                     </div>
-                    
+
                     <div className="mb-6">
                       <h4 className="text-xl font-medium mb-2 text-gray-800">Technologies</h4>
                       <ul className="flex flex-wrap gap-2">
@@ -477,7 +487,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
                         )}
                       </ul>
                     </div>
-                    
+
                     {project.stack && (
                       <div className="mb-6">
                         <h4 className="text-xl font-medium mb-2 text-gray-800">Stack</h4>

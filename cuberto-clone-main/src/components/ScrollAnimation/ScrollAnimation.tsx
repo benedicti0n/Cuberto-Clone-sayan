@@ -1,5 +1,5 @@
-import React, { ReactNode, useEffect, useState, useRef } from 'react';
-import { motion, useScroll, useInView } from 'framer-motion';
+import React, { ReactNode, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 
 interface ScrollAnimationProps {
   children: ReactNode;
@@ -21,15 +21,15 @@ const ScrollAnimation: React.FC<ScrollAnimationProps> = ({
   threshold = 0.1,
 }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { 
-    once, 
-    amount: threshold 
+  const isInView = useInView(ref, {
+    once,
+    amount: threshold
   });
-  
+
   // Initial animation states based on direction
   let initial = {};
-  let animate = { y: 0, x: 0, opacity: 1 };
-  
+  const animate = { y: 0, x: 0, opacity: 1 };
+
   switch (direction) {
     case 'up':
       initial = { y: distance, opacity: 0 };

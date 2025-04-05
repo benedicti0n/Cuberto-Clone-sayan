@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
-import Link from 'next/link';
 import { fetchContent, setupContentPolling } from '@/utils/contentSync';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
@@ -78,7 +77,7 @@ export default function ExpertiseSection() {
       try {
         // Try to get skills from the API first
         const apiContent = await fetchContent();
-        
+
         if (apiContent && apiContent.siteSkills) {
           setSkills(JSON.parse(apiContent.siteSkills));
         } else {
@@ -90,7 +89,7 @@ export default function ExpertiseSection() {
         }
       } catch (error) {
         console.error('Error loading skills:', error);
-        
+
         // Fallback to localStorage if API fails
         const savedSkills = localStorage.getItem('siteSkills');
         if (savedSkills) {
@@ -105,7 +104,7 @@ export default function ExpertiseSection() {
 
     // Load initial skills
     loadSkills();
-    
+
     // Set up polling for real-time updates
     const cleanupPolling = setupContentPolling((data) => {
       if (data.siteSkills) {
@@ -116,25 +115,25 @@ export default function ExpertiseSection() {
         }
       }
     });
-    
+
     // Listen for content updates from admin panel in the same tab
     const handleContentUpdate = (event: CustomEvent) => {
       if (event.detail.type === 'skills') {
         setSkills(event.detail.content);
       }
     };
-    
+
     // Listen for skills updates from the Home component
     const handleSkillsUpdated = (event: CustomEvent) => {
       if (event.detail.skills) {
         setSkills(event.detail.skills);
       }
     };
-    
+
     // Add event listeners
     window.addEventListener('contentUpdated', handleContentUpdate as EventListener);
     window.addEventListener('skillsUpdated', handleSkillsUpdated as EventListener);
-    
+
     return () => {
       if (cleanupPolling) cleanupPolling();
       window.removeEventListener('contentUpdated', handleContentUpdate as EventListener);
@@ -145,7 +144,7 @@ export default function ExpertiseSection() {
   // Helper function to get the correct Font Awesome icon
   const getIconComponent = (iconName: string) => {
     if (!iconName) return null;
-    
+
     if (iconName.startsWith('fab ')) {
       // Brand icon
       const brandIcon = iconName.replace('fab ', '');
@@ -175,59 +174,59 @@ export default function ExpertiseSection() {
             <div className="absolute inset-0 w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${skill.backgroundImage || '/images/1.png'})` }}>
               <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 transition-opacity duration-500"></div>
             </div>
-            
+
             {/* Content */}
             <div className="absolute bottom-16 md:bottom-20 left-6 md:left-10 max-w-2xl z-10 text-white">
               {/* Icon */}
               <div className="mb-2 md:mb-4" style={{ color: skill.iconColor || '#00ed64' }}>
                 {getIconComponent(skill.icon)}
               </div>
-              
+
               {/* Title */}
               <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-2 md:mb-3">
                 {skill.title}
               </h2>
-              
+
               {/* Description */}
               <p className="text-sm md:text-lg mb-6 md:mb-8">
                 {skill.description}
               </p>
-              
+
               {/* Learn More Link */}
               {skill.learnMoreLink && (
-                <a 
-                  href={skill.learnMoreLink} 
-                  target="_blank" 
+                <a
+                  href={skill.learnMoreLink}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="bg-white text-black py-2 px-6 md:py-3 md:px-8 rounded-full text-sm md:text-base font-medium hover:bg-opacity-90 transition-all inline-flex items-center"
                 >
                   Learn more
-                  <svg 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24" 
+                  <svg
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg"
                     className="w-3 h-3 md:w-4 md:h-4 ml-2"
                   >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="2" 
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
                       d="M9 5l7 7-7 7"
                     ></path>
                   </svg>
                 </a>
               )}
             </div>
-            
+
             {/* Proficiency Indicator */}
             <div className="absolute bottom-6 md:bottom-8 right-6 md:right-10 z-10">
               <div className="flex items-center bg-white/30 backdrop-blur-sm py-0.5 px-2 md:py-1 md:px-3 rounded-full">
                 <span className="text-white text-xs md:text-sm mr-1 md:mr-2">Proficiency:</span>
                 <div className="w-16 md:w-24 bg-white/30 rounded-full h-1.5 md:h-2">
-                  <div 
-                    className="h-1.5 md:h-2 rounded-full" 
-                    style={{ 
+                  <div
+                    className="h-1.5 md:h-2 rounded-full"
+                    style={{
                       width: `${skill.proficiencyLevel}%`,
                       backgroundColor: skill.iconColor || '#00ed64'
                     }}

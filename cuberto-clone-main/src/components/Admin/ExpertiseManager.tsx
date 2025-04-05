@@ -30,7 +30,7 @@ export default function ExpertiseManager() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -44,7 +44,7 @@ export default function ExpertiseManager() {
   useEffect(() => {
     loadSkills();
     loadUploadedImages();
-    
+
     // Set up polling for real-time updates
     const cleanupPolling = setupContentPolling((data) => {
       if (data.siteSkills) {
@@ -54,7 +54,7 @@ export default function ExpertiseManager() {
           console.error('Error parsing skills from API:', error);
         }
       }
-      
+
       if (data.uploadedImages) {
         try {
           const apiImages = JSON.parse(data.uploadedImages);
@@ -64,17 +64,18 @@ export default function ExpertiseManager() {
         }
       }
     });
-    
+
     return () => {
       if (cleanupPolling) cleanupPolling();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadSkills = async () => {
     try {
       // Try to get skills from the API first
       const apiContent = await fetchContent();
-      
+
       if (apiContent && apiContent.siteSkills) {
         setSkills(JSON.parse(apiContent.siteSkills));
       } else {
@@ -119,7 +120,7 @@ export default function ExpertiseManager() {
     try {
       // Try to get uploaded images from the API first
       const apiContent = await fetchContent();
-      
+
       if (apiContent && apiContent.uploadedImages) {
         localStorage.setItem('uploadedImages', apiContent.uploadedImages);
       }
@@ -131,11 +132,11 @@ export default function ExpertiseManager() {
   const saveSkills = async (updatedSkills: Skill[]) => {
     // Save to localStorage for immediate local updates
     localStorage.setItem('siteSkills', JSON.stringify(updatedSkills));
-    
+
     // Save to API for cross-device synchronization
     try {
       await updateContent('siteSkills', JSON.stringify(updatedSkills));
-      
+
       // Dispatch a custom event for real-time updates within the same tab
       const event = new CustomEvent('contentUpdated', {
         detail: {
@@ -144,7 +145,7 @@ export default function ExpertiseManager() {
         }
       });
       window.dispatchEvent(event);
-      
+
       // Also dispatch the skillsUpdated event for the ExpertiseSection component
       const skillsEvent = new CustomEvent('skillsUpdated', {
         detail: {
@@ -160,7 +161,7 @@ export default function ExpertiseManager() {
   const saveUploadedImages = async (images: ImageData[]) => {
     // Save to localStorage for immediate local updates
     localStorage.setItem('uploadedImages', JSON.stringify(images));
-    
+
     // Save to API for cross-device synchronization
     try {
       await updateContent('uploadedImages', JSON.stringify(images));
@@ -171,7 +172,7 @@ export default function ExpertiseManager() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
-    
+
     if (type === 'number') {
       setFormData({
         ...formData,
@@ -223,10 +224,10 @@ export default function ExpertiseManager() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (editingId) {
       // Update existing skill
-      const updatedSkills = skills.map(skill => 
+      const updatedSkills = skills.map(skill =>
         skill.id === editingId ? { ...skill, ...formData } : skill
       );
       setSkills(updatedSkills);
@@ -243,7 +244,7 @@ export default function ExpertiseManager() {
       saveSkills(updatedSkills);
       setIsAdding(false);
     }
-    
+
     // Reset form
     setFormData({
       title: '',
@@ -290,7 +291,7 @@ export default function ExpertiseManager() {
     try {
       setUploadingImage(true);
       setUploadProgress(0);
-      
+
       // Create a simulated upload progress
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
@@ -304,7 +305,7 @@ export default function ExpertiseManager() {
 
       // Convert the file to base64
       const base64 = await convertFileToBase64(file);
-      
+
       // Store the image in localStorage and API
       const timestamp = Date.now();
       const imageName = `expertise_bg_${timestamp}_${file.name.replace(/\s+/g, '_')}`;
@@ -319,13 +320,13 @@ export default function ExpertiseManager() {
       // Get existing images or create new array
       const existingImagesStr = localStorage.getItem('uploadedImages') || '[]';
       const existingImages = JSON.parse(existingImagesStr);
-      
+
       // Add new image to array
       existingImages.push(imageData);
-      
+
       // Save to localStorage and API
       await saveUploadedImages(existingImages);
-      
+
       // Update form data with the image URL (using data URL for immediate display)
       setFormData({
         ...formData,
@@ -335,13 +336,13 @@ export default function ExpertiseManager() {
       // Complete progress
       clearInterval(progressInterval);
       setUploadProgress(100);
-      
+
       // Reset after a short delay
       setTimeout(() => {
         setUploadingImage(false);
         setUploadProgress(0);
       }, 500);
-      
+
     } catch (error) {
       console.error('Error uploading image:', error);
       setUploadingImage(false);
@@ -370,13 +371,13 @@ export default function ExpertiseManager() {
   return (
     <div>
       <h2 className={styles.sectionTitle}>Expertise Manager</h2>
-      
+
       {!isAdding && !editingId && (
         <button onClick={handleAddNew} className={styles.actionButton}>
           Add New Skill
         </button>
       )}
-      
+
       {(isAdding || editingId) && (
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
@@ -390,7 +391,7 @@ export default function ExpertiseManager() {
               required
             />
           </div>
-          
+
           <div className={styles.formGroup}>
             <label htmlFor="description">Description:</label>
             <textarea
@@ -401,7 +402,7 @@ export default function ExpertiseManager() {
               required
             />
           </div>
-          
+
           <div className={styles.formGroup}>
             <label htmlFor="icon">Font Awesome Icon Code:</label>
             <input
@@ -414,7 +415,7 @@ export default function ExpertiseManager() {
             />
             <small>{`Enter the Font Awesome icon code (e.g., 'fa-code', 'fa-palette')`}</small>
           </div>
-          
+
           <div className={styles.formGroup}>
             <label htmlFor="iconColor">Icon Color:</label>
             <div className={styles.colorPickerContainer}>
@@ -433,7 +434,7 @@ export default function ExpertiseManager() {
               />
             </div>
           </div>
-          
+
           <div className={styles.formGroup}>
             <label htmlFor="backgroundImage">Background Image:</label>
             <div className={styles.imageUploadContainer}>
@@ -445,8 +446,8 @@ export default function ExpertiseManager() {
                 onChange={handleInputChange}
                 placeholder="Enter image URL or upload an image"
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={triggerFileInput}
                 className={styles.uploadButton}
                 disabled={uploadingImage}
@@ -463,8 +464,8 @@ export default function ExpertiseManager() {
             </div>
             {uploadingImage && (
               <div className={styles.progressContainer}>
-                <div 
-                  className={styles.progressBar} 
+                <div
+                  className={styles.progressBar}
                   style={{ width: `${uploadProgress}%` }}
                 ></div>
                 <span>{uploadProgress}%</span>
@@ -472,15 +473,16 @@ export default function ExpertiseManager() {
             )}
             {formData.backgroundImage && (
               <div className={styles.imagePreview}>
-                <img 
-                  src={formData.backgroundImage} 
-                  alt="Background preview" 
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={formData.backgroundImage}
+                  alt="Background preview"
                   style={{ maxWidth: '100%', maxHeight: '150px', marginTop: '10px' }}
                 />
               </div>
             )}
           </div>
-          
+
           <div className={styles.formGroup}>
             <label htmlFor="proficiencyLevel">{`Proficiency Level (%):`}</label>
             <input
@@ -494,7 +496,7 @@ export default function ExpertiseManager() {
               required
             />
           </div>
-          
+
           <div className={styles.formGroup}>
             <label htmlFor="learnMoreLink">Learn More Link:</label>
             <input
@@ -506,7 +508,7 @@ export default function ExpertiseManager() {
               placeholder="https://example.com"
             />
           </div>
-          
+
           <div className={styles.formActions}>
             <button type="submit" className={styles.saveButton}>
               {editingId ? 'Update Skill' : 'Add Skill'}
@@ -517,7 +519,7 @@ export default function ExpertiseManager() {
           </div>
         </form>
       )}
-      
+
       <div className={styles.itemsList}>
         <h3>Current Skills</h3>
         {skills.length === 0 ? (
@@ -528,19 +530,19 @@ export default function ExpertiseManager() {
               <div key={skill.id} className={styles.responsiveItemCard}>
                 <h4 className={styles.skillTitle}>{skill.title}</h4>
                 <p className={styles.skillDescription}>{skill.description}</p>
-                
+
                 <div className={styles.skillDetails}>
                   <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Icon:</span> 
+                    <span className={styles.detailLabel}>Icon:</span>
                     <span className={styles.detailValue}>{skill.icon}</span>
                   </div>
                   <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Color:</span> 
+                    <span className={styles.detailLabel}>Color:</span>
                     <span className={styles.detailValue}>
-                      <span style={{ 
-                        display: 'inline-block', 
-                        width: '14px', 
-                        height: '14px', 
+                      <span style={{
+                        display: 'inline-block',
+                        width: '14px',
+                        height: '14px',
                         backgroundColor: skill.iconColor,
                         marginRight: '5px',
                         borderRadius: '2px'
@@ -549,30 +551,31 @@ export default function ExpertiseManager() {
                     </span>
                   </div>
                   <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Proficiency:</span> 
+                    <span className={styles.detailLabel}>Proficiency:</span>
                     <span className={styles.detailValue}>{skill.proficiencyLevel}%</span>
                   </div>
                 </div>
-                
+
                 {skill.backgroundImage && (
                   <div className={styles.responsiveImageContainer}>
-                    <img 
-                      src={skill.backgroundImage} 
-                      alt={`${skill.title} background`} 
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={skill.backgroundImage}
+                      alt={`${skill.title} background`}
                       className={styles.responsiveImage}
                     />
                   </div>
                 )}
-                
+
                 <div className={styles.responsiveItemActions}>
-                  <button 
-                    onClick={() => handleEdit(skill)} 
+                  <button
+                    onClick={() => handleEdit(skill)}
                     className={`${styles.actionButton} ${styles.editButton}`}
                   >
                     Edit
                   </button>
-                  <button 
-                    onClick={() => handleDelete(skill.id)} 
+                  <button
+                    onClick={() => handleDelete(skill.id)}
                     className={`${styles.actionButton} ${styles.deleteButton}`}
                   >
                     Delete
