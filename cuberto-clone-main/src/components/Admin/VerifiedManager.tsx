@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import styles from '../../app/admin/admin.module.css';
-import { fetchContent, updateContent, setupContentPolling } from '@/utils/contentSync';
 
 interface VerifiedContent {
   aboutText: string;

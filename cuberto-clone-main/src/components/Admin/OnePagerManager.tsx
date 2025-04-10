@@ -27,11 +27,11 @@ export default function OnePagerManager() {
     contactPhone: '',
     socialLinks: []
   });
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [editingSocialId, setEditingSocialId] = useState<string | null>(null);
   const [addingSocial, setAddingSocial] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     subtitle: '',
@@ -39,7 +39,7 @@ export default function OnePagerManager() {
     contactEmail: '',
     contactPhone: ''
   });
-  
+
   const [socialForm, setSocialForm] = useState({
     platform: '',
     url: ''
@@ -89,7 +89,7 @@ export default function OnePagerManager() {
   };
 
   const handleSaveContent = () => {
-    const updatedContent = { 
+    const updatedContent = {
       ...content,
       title: formData.title,
       subtitle: formData.subtitle,
@@ -140,10 +140,10 @@ export default function OnePagerManager() {
 
   const handleSaveSocial = () => {
     let updatedLinks;
-    
+
     if (editingSocialId) {
       // Update existing social link
-      updatedLinks = content.socialLinks.map(link => 
+      updatedLinks = content.socialLinks.map(link =>
         link.id === editingSocialId ? { ...link, ...socialForm } : link
       );
     } else {
@@ -154,11 +154,11 @@ export default function OnePagerManager() {
       };
       updatedLinks = [...content.socialLinks, newLink];
     }
-    
+
     const updatedContent = { ...content, socialLinks: updatedLinks };
     setContent(updatedContent);
     localStorage.setItem('siteOnePagerContent', JSON.stringify(updatedContent));
-    
+
     setEditingSocialId(null);
     setAddingSocial(false);
   };
@@ -166,10 +166,10 @@ export default function OnePagerManager() {
   return (
     <div>
       <h2 className={styles.sectionTitle}>One Pager Manager</h2>
-      
+
       <div className={styles.itemCard}>
         <h3>Main Content</h3>
-        
+
         {!isEditing ? (
           <div>
             <p><strong>Title:</strong> {content.title}</p>
@@ -177,7 +177,7 @@ export default function OnePagerManager() {
             <p><strong>Description:</strong> {content.description}</p>
             <p><strong>Contact Email:</strong> {content.contactEmail}</p>
             <p><strong>Contact Phone:</strong> {content.contactPhone}</p>
-            
+
             <button onClick={handleEditContent} className={styles.actionButton}>
               Edit Content
             </button>
@@ -194,7 +194,7 @@ export default function OnePagerManager() {
                 onChange={handleInputChange}
               />
             </div>
-            
+
             <div className={styles.formGroup}>
               <label htmlFor="subtitle">Subtitle:</label>
               <input
@@ -205,7 +205,7 @@ export default function OnePagerManager() {
                 onChange={handleInputChange}
               />
             </div>
-            
+
             <div className={styles.formGroup}>
               <label htmlFor="description">Description:</label>
               <textarea
@@ -216,7 +216,7 @@ export default function OnePagerManager() {
                 rows={4}
               />
             </div>
-            
+
             <div className={styles.formGroup}>
               <label htmlFor="contactEmail">Contact Email:</label>
               <input
@@ -227,7 +227,7 @@ export default function OnePagerManager() {
                 onChange={handleInputChange}
               />
             </div>
-            
+
             <div className={styles.formGroup}>
               <label htmlFor="contactPhone">Contact Phone:</label>
               <input
@@ -238,13 +238,13 @@ export default function OnePagerManager() {
                 onChange={handleInputChange}
               />
             </div>
-            
+
             <div>
               <button onClick={handleSaveContent} className={styles.actionButton}>
                 Save Changes
               </button>
-              <button 
-                onClick={() => setIsEditing(false)} 
+              <button
+                onClick={() => setIsEditing(false)}
                 className={`${styles.actionButton} ${styles.deleteButton}`}
               >
                 Cancel
@@ -253,53 +253,53 @@ export default function OnePagerManager() {
           </div>
         )}
       </div>
-      
+
       <div className={styles.itemCard}>
         <h3>Social Links</h3>
-        
+
         {!addingSocial && !editingSocialId && (
           <button onClick={handleAddSocial} className={styles.actionButton}>
             Add New Social Link
           </button>
         )}
-        
+
         {(addingSocial || editingSocialId) && (
           <div className={styles.formGroup}>
             <h4>{editingSocialId ? 'Edit Social Link' : 'Add New Social Link'}</h4>
-            
+
             <div className={styles.formGroup}>
               <label htmlFor="platform">Platform:</label>
               <input
                 type="text"
                 id="platform"
                 value={socialForm.platform}
-                onChange={(e) => setSocialForm({...socialForm, platform: e.target.value})}
+                onChange={(e) => setSocialForm({ ...socialForm, platform: e.target.value })}
                 placeholder="e.g., LinkedIn, Twitter, GitHub"
                 required
               />
             </div>
-            
+
             <div className={styles.formGroup}>
               <label htmlFor="url">URL:</label>
               <input
                 type="url"
                 id="url"
                 value={socialForm.url}
-                onChange={(e) => setSocialForm({...socialForm, url: e.target.value})}
+                onChange={(e) => setSocialForm({ ...socialForm, url: e.target.value })}
                 placeholder="https://..."
                 required
               />
             </div>
-            
+
             <div>
               <button onClick={handleSaveSocial} className={styles.actionButton}>
                 {editingSocialId ? 'Update Link' : 'Add Link'}
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setAddingSocial(false);
                   setEditingSocialId(null);
-                }} 
+                }}
                 className={`${styles.actionButton} ${styles.deleteButton}`}
               >
                 Cancel
@@ -307,22 +307,22 @@ export default function OnePagerManager() {
             </div>
           </div>
         )}
-        
+
         <div className={styles.itemsList}>
           <h4>Existing Social Links</h4>
           {content.socialLinks.map(link => (
             <div key={link.id} className={styles.itemCard}>
               <p><strong>{link.platform}:</strong> <a href={link.url} target="_blank" rel="noopener noreferrer">{link.url}</a></p>
-              
+
               <div className={styles.itemActions}>
-                <button 
-                  onClick={() => handleEditSocial(link)} 
+                <button
+                  onClick={() => handleEditSocial(link)}
                   className={`${styles.actionButton} ${styles.editButton}`}
                 >
                   Edit
                 </button>
-                <button 
-                  onClick={() => handleDeleteSocial(link.id)} 
+                <button
+                  onClick={() => handleDeleteSocial(link.id)}
                   className={`${styles.actionButton} ${styles.deleteButton}`}
                 >
                   Delete

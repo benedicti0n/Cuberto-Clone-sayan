@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
-import { fetchContent, setupContentPolling } from '@/utils/contentSync';
+// import { fetchContent, setupContentPolling } from '@/utils/contentSync';
 
 interface Project {
   id: string;

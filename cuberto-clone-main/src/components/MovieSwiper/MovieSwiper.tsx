@@ -21,7 +21,7 @@ import {
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
-import { fetchContent, setupContentPolling } from '@/utils/contentSync';
+// import { fetchContent, setupContentPolling } from '@/utils/contentSync';
 
 // Import Swiper styles
 import 'swiper/css';
