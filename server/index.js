@@ -6,6 +6,7 @@ const cors = require("cors"); // ✅ Import cors
 
 const ProjectsRouter = require('./routes/ProjectsRoutes');
 const headerLineRoutes = require('./routes/HeaderLineRoute');
+const expertiseRoutes = require('./routes/Expertise.route');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,7 @@ mongoose.connect(MONGO_URI).then(() => {
 // ✅ Define Routes
 app.use('/headerLine', headerLineRoutes);
 app.use('/project', ProjectsRouter);
+app.use('/expertise', expertiseRoutes);
 
 // ✅ Start Server
 app.listen(PORT, () => {

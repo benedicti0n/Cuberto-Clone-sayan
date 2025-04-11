@@ -1,4 +1,4 @@
-const HeaderLine = require('../models/HeaderLine');
+const HeaderLine = require('../models/Expertise');
 
 const getHeaderLine = async (req, res) => {
     try {
