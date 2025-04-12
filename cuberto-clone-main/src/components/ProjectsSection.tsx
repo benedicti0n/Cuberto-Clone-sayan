@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchContent, setupContentPolling } from '@/utils/contentSync';
 
 // Define the Project interface
 interface Project {
@@ -316,22 +315,17 @@ export default function ProjectsSection() {
             // Continue to API fetch
           }
         }
+        loadProjects();
 
-        // Try to get projects from the API (even if we already have cached data)
-        const apiContent = await fetchContent();
-        console.log('API Content received:', apiContent);
+        // Set up polling for real-time updates
+        const cleanupPolling = setupContentPolling((data) => {
+          if (data.siteProjects) {
+            try {
+              const parsedProjects = JSON.parse(data.siteProjects);
+              console.log('Polling: Parsed projects from API:', parsedProjects);
 
-        if (apiContent && apiContent.siteProjects) {
-          try {
-            const parsedProjects = JSON.parse(apiContent.siteProjects);
-            console.log('Parsed projects from API:', parsedProjects);
-            if (parsedProjects && Array.isArray(parsedProjects) && parsedProjects.length > 0) {
-              // Check if projects have actually changed to prevent unnecessary re-renders
-              const currentIds = projects.map(p => p.id).sort().join(',');
-              const newIds = parsedProjects.map(p => p.id).sort().join(',');
-
-              if (currentIds !== newIds || projects.length === 0) {
-                // First, check if we should preserve any data URLs from the existing projects
+              if (parsedProjects && Array.isArray(parsedProjects) && parsedProjects.length > 0) {
+                // Preserve any data URLs from current projects
                 const enhancedProjects = parsedProjects.map(newProject => {
                   // Look for this project in our current state to see if we have a data URL for it
                   const existingProject = projects.find(p => p.id === newProject.id);
@@ -355,231 +349,152 @@ export default function ProjectsSection() {
 
                 setProjects(enhancedProjects);
                 setShowSection(true);
+                setError(null);
                 setUsingCachedData(false);
 
-                // Precache new images for any new projects or projects without data URLs
-                precacheImages(enhancedProjects);
-
-                // Also update localStorage for offline access with the enhanced projects
+                // Update cache with the enhanced projects
                 safelyStore('siteProjects', JSON.stringify(enhancedProjects));
+
+                // Precache images only for projects that don't already have data URLs
+                const projectsToCache = enhancedProjects.filter(p =>
+                  p.imageUrl && !p.imageUrl.startsWith('data:'));
+
+                if (projectsToCache.length > 0) {
+                  precacheImages(projectsToCache);
+                }
+              } else {
+                console.log('Polling: No valid projects in API response');
+                // Do not hide section if we have cached data
+                if (!usingCachedData) {
+                  setShowSection(false);
+                }
+              }
+            } catch (error) {
+              console.error('Polling: Error parsing projects from API:', error);
+              // Don't set error during polling as it might be a temporary issue
+            }
+          }
+        });
+
+        // Listen for content updates from admin panel in the same tab
+        const handleContentUpdate = (event: CustomEvent) => {
+          if (event.detail.type === 'projects') {
+            const updatedProjects = event.detail.content;
+            console.log('ProjectsSection - Updated projects from admin panel:', updatedProjects);
+
+            if (updatedProjects && Array.isArray(updatedProjects) && updatedProjects.length > 0) {
+              // Preserve any data URLs from current projects
+              const enhancedProjects = updatedProjects.map(newProject => {
+                // Look for this project in our current state to see if we have a data URL for it
+                const existingProject = projects.find(p => p.id === newProject.id);
+
+                // If the existing project has a data URL and the new project doesn't,
+                // use the data URL from existing project
+                if (existingProject &&
+                  existingProject.imageUrl &&
+                  existingProject.imageUrl.startsWith('data:') &&
+                  newProject.imageUrl &&
+                  !newProject.imageUrl.startsWith('data:') &&
+                  existingProject.imageUrl !== DEFAULT_PLACEHOLDER) {
+                  return {
+                    ...newProject,
+                    imageUrl: existingProject.imageUrl
+                  };
+                }
+
+                return newProject;
+              });
+
+              setProjects(enhancedProjects);
+              setShowSection(true);
+              setError(null);
+              setUsingCachedData(false);
+
+              // Update cache with stringified enhanced content
+              safelyStore('siteProjects', JSON.stringify(enhancedProjects));
+
+              // Precache images only for projects that don't already have data URLs
+              const projectsToCache = enhancedProjects.filter(p =>
+                p.imageUrl && !p.imageUrl.startsWith('data:'));
+
+              if (projectsToCache.length > 0) {
+                precacheImages(projectsToCache);
               }
             } else {
-              // Only hide section if we don't have cached data already displayed
+              // Hide section if no projects and we're not using cached data
               if (!usingCachedData) {
-                console.log('No projects found in API response');
                 setShowSection(false);
               }
             }
-          } catch (parseError) {
-            console.error('Error parsing projects from API:', parseError);
-            setError('Failed to parse projects data');
-
-            // Only show error and fall back if we're not already showing cached data
-            if (!usingCachedData) {
-              fallbackToLocalStorage();
-            }
           }
-        } else {
-          console.log('No siteProjects in API response, falling back to localStorage');
-          // Only fall back if we're not already showing cached data
-          if (!usingCachedData) {
-            fallbackToLocalStorage();
-          }
-        }
-      } catch (error) {
-        console.error('Error loading projects from API:', error);
-        setError('Failed to load projects');
+        };
 
-        // Only fall back if we're not already showing cached data
-        if (!usingCachedData) {
-          fallbackToLocalStorage();
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
+        // Listen for projects updates from other components
+        const handleProjectsUpdated = (event: CustomEvent) => {
+          console.log('ProjectsSection - projectsUpdated event received:', event.detail);
 
-    // Load initial projects
-    loadProjects();
+          if (event.detail && event.detail.projects) {
+            const updatedProjects = event.detail.projects;
+            console.log('ProjectsSection - Updated projects from projectsUpdated event:', updatedProjects);
 
-    // Set up polling for real-time updates
-    const cleanupPolling = setupContentPolling((data) => {
-      if (data.siteProjects) {
-        try {
-          const parsedProjects = JSON.parse(data.siteProjects);
-          console.log('Polling: Parsed projects from API:', parsedProjects);
+            if (updatedProjects && Array.isArray(updatedProjects) && updatedProjects.length > 0) {
+              // Preserve any data URLs from current projects
+              const enhancedProjects = updatedProjects.map(newProject => {
+                // Look for this project in our current state to see if we have a data URL for it
+                const existingProject = projects.find(p => p.id === newProject.id);
 
-          if (parsedProjects && Array.isArray(parsedProjects) && parsedProjects.length > 0) {
-            // Preserve any data URLs from current projects
-            const enhancedProjects = parsedProjects.map(newProject => {
-              // Look for this project in our current state to see if we have a data URL for it
-              const existingProject = projects.find(p => p.id === newProject.id);
+                // If the existing project has a data URL and the new project doesn't,
+                // use the data URL from existing project
+                if (existingProject &&
+                  existingProject.imageUrl &&
+                  existingProject.imageUrl.startsWith('data:') &&
+                  newProject.imageUrl &&
+                  !newProject.imageUrl.startsWith('data:') &&
+                  existingProject.imageUrl !== DEFAULT_PLACEHOLDER) {
+                  return {
+                    ...newProject,
+                    imageUrl: existingProject.imageUrl
+                  };
+                }
 
-              // If the existing project has a data URL and the new project doesn't,
-              // use the data URL from existing project
-              if (existingProject &&
-                existingProject.imageUrl &&
-                existingProject.imageUrl.startsWith('data:') &&
-                newProject.imageUrl &&
-                !newProject.imageUrl.startsWith('data:') &&
-                existingProject.imageUrl !== DEFAULT_PLACEHOLDER) {
-                return {
-                  ...newProject,
-                  imageUrl: existingProject.imageUrl
-                };
+                return newProject;
+              });
+
+              setProjects(enhancedProjects);
+              setShowSection(true);
+              setError(null);
+              setUsingCachedData(false);
+
+              // Update cache with stringified enhanced content
+              safelyStore('siteProjects', JSON.stringify(enhancedProjects));
+
+              // Precache images only for projects that don't already have data URLs
+              const projectsToCache = enhancedProjects.filter(p =>
+                p.imageUrl && !p.imageUrl.startsWith('data:'));
+
+              if (projectsToCache.length > 0) {
+                precacheImages(projectsToCache);
               }
-
-              return newProject;
-            });
-
-            setProjects(enhancedProjects);
-            setShowSection(true);
-            setError(null);
-            setUsingCachedData(false);
-
-            // Update cache with the enhanced projects
-            safelyStore('siteProjects', JSON.stringify(enhancedProjects));
-
-            // Precache images only for projects that don't already have data URLs
-            const projectsToCache = enhancedProjects.filter(p =>
-              p.imageUrl && !p.imageUrl.startsWith('data:'));
-
-            if (projectsToCache.length > 0) {
-              precacheImages(projectsToCache);
-            }
-          } else {
-            console.log('Polling: No valid projects in API response');
-            // Do not hide section if we have cached data
-            if (!usingCachedData) {
-              setShowSection(false);
+            } else {
+              // Hide section if no projects and we're not using cached data
+              if (!usingCachedData) {
+                setShowSection(false);
+              }
             }
           }
-        } catch (error) {
-          console.error('Polling: Error parsing projects from API:', error);
-          // Don't set error during polling as it might be a temporary issue
-        }
-      }
-    });
+        };
 
-    // Listen for content updates from admin panel in the same tab
-    const handleContentUpdate = (event: CustomEvent) => {
-      if (event.detail.type === 'projects') {
-        const updatedProjects = event.detail.content;
-        console.log('ProjectsSection - Updated projects from admin panel:', updatedProjects);
+        // Add event listeners
+        window.addEventListener('contentUpdated', handleContentUpdate as EventListener);
+        window.addEventListener('projectsUpdated', handleProjectsUpdated as EventListener);
 
-        if (updatedProjects && Array.isArray(updatedProjects) && updatedProjects.length > 0) {
-          // Preserve any data URLs from current projects
-          const enhancedProjects = updatedProjects.map(newProject => {
-            // Look for this project in our current state to see if we have a data URL for it
-            const existingProject = projects.find(p => p.id === newProject.id);
-
-            // If the existing project has a data URL and the new project doesn't,
-            // use the data URL from existing project
-            if (existingProject &&
-              existingProject.imageUrl &&
-              existingProject.imageUrl.startsWith('data:') &&
-              newProject.imageUrl &&
-              !newProject.imageUrl.startsWith('data:') &&
-              existingProject.imageUrl !== DEFAULT_PLACEHOLDER) {
-              return {
-                ...newProject,
-                imageUrl: existingProject.imageUrl
-              };
-            }
-
-            return newProject;
-          });
-
-          setProjects(enhancedProjects);
-          setShowSection(true);
-          setError(null);
-          setUsingCachedData(false);
-
-          // Update cache with stringified enhanced content
-          safelyStore('siteProjects', JSON.stringify(enhancedProjects));
-
-          // Precache images only for projects that don't already have data URLs
-          const projectsToCache = enhancedProjects.filter(p =>
-            p.imageUrl && !p.imageUrl.startsWith('data:'));
-
-          if (projectsToCache.length > 0) {
-            precacheImages(projectsToCache);
-          }
-        } else {
-          // Hide section if no projects and we're not using cached data
-          if (!usingCachedData) {
-            setShowSection(false);
-          }
-        }
-      }
-    };
-
-    // Listen for projects updates from other components
-    const handleProjectsUpdated = (event: CustomEvent) => {
-      console.log('ProjectsSection - projectsUpdated event received:', event.detail);
-
-      if (event.detail && event.detail.projects) {
-        const updatedProjects = event.detail.projects;
-        console.log('ProjectsSection - Updated projects from projectsUpdated event:', updatedProjects);
-
-        if (updatedProjects && Array.isArray(updatedProjects) && updatedProjects.length > 0) {
-          // Preserve any data URLs from current projects
-          const enhancedProjects = updatedProjects.map(newProject => {
-            // Look for this project in our current state to see if we have a data URL for it
-            const existingProject = projects.find(p => p.id === newProject.id);
-
-            // If the existing project has a data URL and the new project doesn't,
-            // use the data URL from existing project
-            if (existingProject &&
-              existingProject.imageUrl &&
-              existingProject.imageUrl.startsWith('data:') &&
-              newProject.imageUrl &&
-              !newProject.imageUrl.startsWith('data:') &&
-              existingProject.imageUrl !== DEFAULT_PLACEHOLDER) {
-              return {
-                ...newProject,
-                imageUrl: existingProject.imageUrl
-              };
-            }
-
-            return newProject;
-          });
-
-          setProjects(enhancedProjects);
-          setShowSection(true);
-          setError(null);
-          setUsingCachedData(false);
-
-          // Update cache with stringified enhanced content
-          safelyStore('siteProjects', JSON.stringify(enhancedProjects));
-
-          // Precache images only for projects that don't already have data URLs
-          const projectsToCache = enhancedProjects.filter(p =>
-            p.imageUrl && !p.imageUrl.startsWith('data:'));
-
-          if (projectsToCache.length > 0) {
-            precacheImages(projectsToCache);
-          }
-        } else {
-          // Hide section if no projects and we're not using cached data
-          if (!usingCachedData) {
-            setShowSection(false);
-          }
-        }
-      }
-    };
-
-    // Add event listeners
-    window.addEventListener('contentUpdated', handleContentUpdate as EventListener);
-    window.addEventListener('projectsUpdated', handleProjectsUpdated as EventListener);
-
-    return () => {
-      if (cleanupPolling) cleanupPolling();
-      window.removeEventListener('contentUpdated', handleContentUpdate as EventListener);
-      window.removeEventListener('projectsUpdated', handleProjectsUpdated as EventListener);
-    };
-    //eslint-disable-next-line
-  }, []);
+        return () => {
+          if (cleanupPolling) cleanupPolling();
+          window.removeEventListener('contentUpdated', handleContentUpdate as EventListener);
+          window.removeEventListener('projectsUpdated', handleProjectsUpdated as EventListener);
+        };
+        //eslint-disable-next-line
+      }, []);
 
   // If still loading and we don't have cached data to display, show a loading indicator
   if (isLoading && !usingCachedData && (!projects || projects.length === 0)) {
