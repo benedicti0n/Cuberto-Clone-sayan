@@ -8,7 +8,7 @@ import styles from './admin.module.css';
 import HeaderLineEditor from '../../components/Admin/HeaderLineEditor';
 import ProjectsManager from '../../components/Admin/ProjectsManager';
 import ExpertiseManager from '../../components/Admin/ExpertiseManager';
-import VerifiedManager from '../../components/Admin/VerifiedManager';
+import VerifiedManager from '../../components/Admin/VerifiedManager/VerifiedManager';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -88,8 +88,8 @@ export default function AdminPage() {
         <h1>Admin Panel</h1>
         <div className={styles.headerActions}>
           <button onClick={handleLogout} className={styles.logoutButton}>Logout</button>
-          <button 
-            onClick={toggleMobileMenu} 
+          <button
+            onClick={toggleMobileMenu}
             className={styles.mobileMenuButton}
             aria-label="Toggle menu"
           >
@@ -99,26 +99,26 @@ export default function AdminPage() {
       </div>
 
       <div className={`${styles.adminTabs} ${mobileMenuOpen ? styles.adminTabsMobileOpen : ''}`}>
-        <button 
-          className={activeTab === 'headerline' ? styles.activeTab : ''} 
+        <button
+          className={activeTab === 'headerline' ? styles.activeTab : ''}
           onClick={() => selectTab('headerline')}
         >
           Header Line
         </button>
-        <button 
-          className={activeTab === 'projects' ? styles.activeTab : ''} 
+        <button
+          className={activeTab === 'projects' ? styles.activeTab : ''}
           onClick={() => selectTab('projects')}
         >
           Projects
         </button>
-        <button 
-          className={activeTab === 'expertise' ? styles.activeTab : ''} 
+        <button
+          className={activeTab === 'expertise' ? styles.activeTab : ''}
           onClick={() => selectTab('expertise')}
         >
           Expertise
         </button>
-        <button 
-          className={activeTab === 'verified' ? styles.activeTab : ''} 
+        <button
+          className={activeTab === 'verified' ? styles.activeTab : ''}
           onClick={() => selectTab('verified')}
         >
           Verified Section

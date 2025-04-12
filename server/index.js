@@ -2,40 +2,52 @@ require('dotenv').config();
 
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors"); // ✅ Import cors
+const cors = require("cors");
+const path = require('path'); // ✅ required for serving static files
 
 const ProjectsRouter = require('./routes/ProjectsRoutes');
 const headerLineRoutes = require('./routes/HeaderLineRoute');
 const expertiseRoutes = require('./routes/Expertise.route');
+const aboutRoutes = require('./routes/aboutRoutes');
+const taglineRoutes = require("./routes/taglineRoutes");
+const profilePhotoRoute = require('./routes/profilePhotoRoute');
+const resumeRoutes = require('./routes/ResumeRoute');
+const academicRoutes = require('./routes/AcademicRoutes')
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;
 
-// ✅ Use cors middleware (allow all origins for now)
+// ✅ Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// CORS config
 app.use(cors({
-  origin: '*', // Or use specific origin like 'http://localhost:3000' for security
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// For parsing application/json
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Connect to MongoDB
 mongoose.connect(MONGO_URI).then(() => {
   console.log("MongoDB connected");
 }).catch((err) => {
   console.error("MongoDB connection error:", err);
 });
 
-// ✅ Define Routes
+// Routes
 app.use('/headerLine', headerLineRoutes);
 app.use('/project', ProjectsRouter);
 app.use('/expertise', expertiseRoutes);
+app.use('/verifiedManager', aboutRoutes);
+app.use('/verifiedManager', taglineRoutes);
+app.use('/profilePhoto', profilePhotoRoute);
+app.use('/resume', resumeRoutes);
+app.use('/academic', academicRoutes)
 
-// ✅ Start Server
+// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
