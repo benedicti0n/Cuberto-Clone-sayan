@@ -35,6 +35,7 @@ export default function Home() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [results, setResults] = useState<AcademicResult[]>([]);
+  const [content, setContent] = useState<{ aboutText: string }>({ aboutText: '' });
 
   const [cursorState] = useState({
     isHoveringOnVideo: false,
@@ -104,12 +105,23 @@ export default function Home() {
     }
   }
 
+  const fetchAbout = async () => {
+    try {
+      const res = await axios.get(`${serverUrl}/verifiedManager/fetchAbout`);
+      setContent({ aboutText: res.data.aboutText || '' });
+    } catch (err) {
+      console.error('Failed to fetch about text', err);
+    }
+  };
+
   useEffect(() => {
     fetchTagline()
     fetchPhoto()
     fetchResume()
     fetchResults()
+    fetchAbout();
   }, [])
+
 
   const getFileNameFromUrl = (url: string | null | undefined): string => {
     if (!url) return 'Profile_Photo.jpg';
@@ -165,8 +177,8 @@ export default function Home() {
           <ScrollAnimation direction="fade">
             <div className="text-xs text-gray-500 space-y-4">
               <p className="font-medium">{tagline.tagline}</p>
-              {tagline ? (
-                <div dangerouslySetInnerHTML={{ __html: tagline.tagline }} />
+              {content ? (
+                <div dangerouslySetInnerHTML={{ __html: content.aboutText }} />
               ) : null}
             </div>
           </ScrollAnimation>
@@ -282,7 +294,7 @@ export default function Home() {
                   <li key={result._id}>
                     {result.contentType?.startsWith('image/') ? (
                       <a
-                        href={result.imageUrl}
+                        href={`data:${result.contentType};base64,${result.fileBuffer}`}
                         download={getFileNameFromUrl(result.imageUrl)}
                         onClick={(e) => handleDownload(e, result.imageUrl)}
                         className="text-gray-600 hover:text-gray-900 flex items-center"
@@ -295,9 +307,10 @@ export default function Home() {
                         href={`data:${result.contentType};base64,${result.fileBuffer}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 underline"
+                        className="text-gray-600 hover:text-gray-900 flex items-center"
                       >
                         {result.title}
+                        <FontAwesomeIcon icon={faDownload} className="ml-2 text-sm" />
                       </a>
                     )}
                   </li>

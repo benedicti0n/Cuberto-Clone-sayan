@@ -13,6 +13,7 @@ const taglineRoutes = require("./routes/taglineRoutes");
 const profilePhotoRoute = require('./routes/profilePhotoRoute');
 const resumeRoutes = require('./routes/ResumeRoute');
 const academicRoutes = require('./routes/AcademicRoutes')
+const contactFormRoutes = require('./routes/contactFormRoute')
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -46,6 +47,7 @@ app.use('/verifiedManager', taglineRoutes);
 app.use('/profilePhoto', profilePhotoRoute);
 app.use('/resume', resumeRoutes);
 app.use('/academic', academicRoutes)
+app.use('/contactForm', contactFormRoutes)
 
 // Start server
 app.listen(PORT, () => {
