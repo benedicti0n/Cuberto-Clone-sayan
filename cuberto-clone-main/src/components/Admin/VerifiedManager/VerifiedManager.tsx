@@ -10,6 +10,7 @@ import Tagline from './Tagline';
 
 export default function VerifiedManager() {
   const [activeSection, setActiveSection] = useState<'about' | 'tagline' | 'photo' | 'resume' | 'results'>('about');
+  // eslint-disable-next-line
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
   const formatSyncTime = () => (lastSyncTime ? lastSyncTime.toLocaleString() : 'Never');

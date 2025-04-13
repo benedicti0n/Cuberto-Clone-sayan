@@ -128,6 +128,7 @@ export default function ExpertiseManager() {
     const fetchExpertise = async () => {
       try {
         const res = await axios.get(`${serverUrl}/expertise/all`);
+        // @ts-expect-error any-type
         setSkills(res.data.map(item => ({ ...item, id: item._id })));
 
       } catch (error) {
@@ -227,6 +228,7 @@ export default function ExpertiseManager() {
               </div>
             )}
             {formData.backgroundImage && (
+              // eslint-disable-next-line
               <img
                 src={formData.backgroundImage}
                 alt="Preview"

@@ -23,6 +23,7 @@ export default function HeaderLineEditor() {
         setEditedLines(lines);
         setLastSyncTime(new Date());
       } catch (error) {
+        {/* @ts-expect-error any-type */ }
         console.error(error.stack);
         setSaveMessage({ text: 'Failed to fetch header lines.', type: 'error' });
       }

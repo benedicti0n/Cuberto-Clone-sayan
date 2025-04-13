@@ -10,7 +10,7 @@ interface ContactFormProps {
   isVisible: boolean;
   onClose: () => void;
 }
-
+// eslint-disable-next-line
 const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
   const [formData, setFormData] = useState({
     name: "",

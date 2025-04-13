@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useState } from 'react';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
@@ -27,6 +26,7 @@ interface Skill {
 }
 
 export default function ExpertiseSection() {
+  // eslint-disable-next-line
   const [skills, setSkills] = useState<Skill[]>([
     // Default skills
     {

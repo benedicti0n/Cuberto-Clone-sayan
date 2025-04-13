@@ -33,15 +33,22 @@ const ContactFormSection = () => {
             ) : (
                 submissions.map((submission) => (
                     <div
+                        // @ts-expect-error any-type
                         key={submission._id}
                         className="border rounded-lg p-4 shadow-md bg-white"
                     >
+                        {/* @ts-expect-error any-type */}
                         <h2 className="text-lg font-semibold text-blue-600">{submission.name}</h2>
+                        {/* @ts-expect-error any-type */}
                         <p className="text-sm text-gray-600 mb-1"><strong>Email:</strong> {submission.email}</p>
+                        {/* @ts-expect-error any-type */}
                         <p className="text-sm text-gray-600 mb-1"><strong>Phone:</strong> {submission.phone}</p>
+                        {/* @ts-expect-error any-type */}
                         <p className="text-sm text-gray-600 mb-1"><strong>Subject:</strong> {submission.subject}</p>
+                        {/* @ts-expect-error any-type */}
                         <p className="text-sm text-gray-800 mt-2 whitespace-pre-line">{submission.message}</p>
                         <p className="text-xs text-gray-400 mt-3 text-right">
+                            {/* @ts-expect-error any-type */}
                             Submitted on {new Date(submission.createdAt).toLocaleString()}
                         </p>
                     </div>

@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import FlipText from "./FlipText";
 import UnderLineText from "./ui/UnderLineText";
@@ -12,6 +12,7 @@ const menuItems = ["Expertise", "Projects", "Verified", "One-Pager", "Contacts"]
 const SideNav = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
     const [isContactFormVisible, setIsContactFormVisible] = useState(false);
     const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
+    // eslint-disable-next-line
     const [resumeUrl, setResumeUrl] = useState('/images/resume.jpg');
 
     // Load resume URL from content

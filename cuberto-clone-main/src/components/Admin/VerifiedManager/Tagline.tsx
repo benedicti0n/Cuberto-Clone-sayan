@@ -38,14 +38,14 @@ const Tagline = () => {
     };
 
     const handleTaglineChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        let value = e.target.value;
+        const value = e.target.value;
         if (autoCorrectEnabled) {
             const corrected = value
                 .split("\n")
                 .flatMap((line) => {
                     if (line.length <= CHAR_LIMIT) return [line];
                     const words = line.split(" ");
-                    let lines: string[] = [];
+                    const lines: string[] = [];
                     let current = "";
                     for (const word of words) {
                         if ((current + " " + word).trim().length > CHAR_LIMIT) {

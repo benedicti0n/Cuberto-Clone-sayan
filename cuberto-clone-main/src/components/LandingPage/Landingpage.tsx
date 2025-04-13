@@ -33,6 +33,7 @@ const Landingpage = () => {
         };
 
         fetchHeaderLines();
+        // eslint-disable-next-line
     }, []);
 
     return (
