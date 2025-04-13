@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
-import { fetchContent, setupContentPolling } from '@/utils/contentSync';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
@@ -72,90 +71,6 @@ export default function ExpertiseSection() {
     }
   ]);
 
-  useEffect(() => {
-    const loadSkills = async () => {
-      try {
-        // Try to get skills from the API first
-        const apiContent = await fetchContent();
-
-        if (apiContent && apiContent.siteSkills) {
-          setSkills(JSON.parse(apiContent.siteSkills));
-        } else {
-          // Fallback to localStorage if API fails
-          const savedSkills = localStorage.getItem('siteSkills');
-          if (savedSkills) {
-            setSkills(JSON.parse(savedSkills));
-          }
-        }
-      } catch (error) {
-        console.error('Error loading skills:', error);
-
-        // Fallback to localStorage if API fails
-        const savedSkills = localStorage.getItem('siteSkills');
-        if (savedSkills) {
-          try {
-            setSkills(JSON.parse(savedSkills));
-          } catch (e) {
-            console.error('Error parsing skills from localStorage:', e);
-          }
-        }
-      }
-    };
-
-    // Load initial skills
-    loadSkills();
-
-    // Set up polling for real-time updates
-    const cleanupPolling = setupContentPolling((data) => {
-      if (data.siteSkills) {
-        try {
-          setSkills(JSON.parse(data.siteSkills));
-        } catch (error) {
-          console.error('Error parsing skills from API:', error);
-        }
-      }
-    });
-
-    // Listen for content updates from admin panel in the same tab
-    const handleContentUpdate = (event: CustomEvent) => {
-      if (event.detail.type === 'skills') {
-        setSkills(event.detail.content);
-      }
-    };
-
-    // Listen for skills updates from the Home component
-    const handleSkillsUpdated = (event: CustomEvent) => {
-      if (event.detail.skills) {
-        setSkills(event.detail.skills);
-      }
-    };
-
-    // Add event listeners
-    window.addEventListener('contentUpdated', handleContentUpdate as EventListener);
-    window.addEventListener('skillsUpdated', handleSkillsUpdated as EventListener);
-
-    return () => {
-      if (cleanupPolling) cleanupPolling();
-      window.removeEventListener('contentUpdated', handleContentUpdate as EventListener);
-      window.removeEventListener('skillsUpdated', handleSkillsUpdated as EventListener);
-    };
-  }, []);
-
-  // Helper function to get the correct Font Awesome icon
-  const getIconComponent = (iconName: string) => {
-    if (!iconName) return null;
-
-    if (iconName.startsWith('fab ')) {
-      // Brand icon
-      const brandIcon = iconName.replace('fab ', '');
-      return <FontAwesomeIcon icon={['fab', brandIcon.replace('fa-', '') as any]} className="text-5xl md:text-7xl lg:text-8xl" />;
-    } else {
-      // Regular or solid icon
-      const solidIcon = iconName.replace('fa-', '');
-      return <FontAwesomeIcon icon={['fas', solidIcon as any]} className="text-5xl md:text-7xl lg:text-8xl" />;
-    }
-  };
-
   return (
     <section className="expertise-section" id="expertise">
       <Swiper
@@ -179,7 +94,7 @@ export default function ExpertiseSection() {
             <div className="absolute bottom-16 md:bottom-20 left-6 md:left-10 max-w-2xl z-10 text-white">
               {/* Icon */}
               <div className="mb-2 md:mb-4" style={{ color: skill.iconColor || '#00ed64' }}>
-                {getIconComponent(skill.icon)}
+                {/* {getIconComponent(skill.icon)} */}
               </div>
 
               {/* Title */}

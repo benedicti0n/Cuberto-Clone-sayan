@@ -1,10 +1,10 @@
+"use client"
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import FlipText from "./FlipText";
 import UnderLineText from "./ui/UnderLineText";
 import ContactForm from "./ContactForm";
 import PDFViewer from "./PDFViewer";
-import { fetchContent, setupContentPolling } from '@/utils/contentSync';
 
 const socialLinks = ["Linkedin", "Behance", "Dribbble", "Instagram", "Youtube", "Twitter", "Github"];
 const menuItems = ["Expertise", "Projects", "Verified", "One-Pager", "Contacts"];
@@ -15,84 +15,6 @@ const SideNav = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     const [resumeUrl, setResumeUrl] = useState('/images/resume.jpg');
 
     // Load resume URL from content
-    useEffect(() => {
-        const loadResumeUrl = async () => {
-            try {
-                // Try to get content from the API first
-                const apiContent = await fetchContent();
-                
-                if (apiContent && apiContent.siteVerifiedContent) {
-                    const parsedContent = JSON.parse(apiContent.siteVerifiedContent);
-                    if (parsedContent.resumeUrl && parsedContent.resumeUrl.trim() !== '') {
-                        setResumeUrl(parsedContent.resumeUrl);
-                    }
-                } else {
-                    // Fallback to localStorage if API fails
-                    const savedContent = localStorage.getItem('siteVerifiedContent');
-                    if (savedContent) {
-                        try {
-                            const parsedContent = JSON.parse(savedContent);
-                            if (parsedContent.resumeUrl && parsedContent.resumeUrl.trim() !== '') {
-                                setResumeUrl(parsedContent.resumeUrl);
-                            }
-                        } catch (error) {
-                            console.error('Error parsing content from localStorage:', error);
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading resume URL:', error);
-            }
-        };
-
-        loadResumeUrl();
-        
-        // Set up polling to check for updates
-        const cleanupPolling = setupContentPolling((data) => {
-            if (data.siteVerifiedContent) {
-                try {
-                    const parsedContent = JSON.parse(data.siteVerifiedContent);
-                    if (parsedContent.resumeUrl && parsedContent.resumeUrl.trim() !== '') {
-                        setResumeUrl(parsedContent.resumeUrl);
-                    }
-                } catch (error) {
-                    console.error('Error parsing content from API:', error);
-                }
-            }
-        });
-        
-        // Listen for content updates from admin panel in the same tab
-        const handleContentUpdate = (event: CustomEvent) => {
-            if (event.detail.type === 'resumeUrl') {
-                setResumeUrl(event.detail.content);
-            }
-        };
-        
-        // Add event listener for content updates
-        window.addEventListener('contentUpdated', handleContentUpdate as EventListener);
-        
-        // Listen for storage events (changes from other tabs)
-        const handleStorageChange = (event: StorageEvent) => {
-            if (event.key === 'siteVerifiedContent' && event.newValue) {
-                try {
-                    const parsedContent = JSON.parse(event.newValue);
-                    if (parsedContent.resumeUrl && parsedContent.resumeUrl.trim() !== '') {
-                        setResumeUrl(parsedContent.resumeUrl);
-                    }
-                } catch (error) {
-                    console.error('Error parsing content from storage event:', error);
-                }
-            }
-        };
-        
-        window.addEventListener('storage', handleStorageChange);
-        
-        return () => {
-            cleanupPolling();
-            window.removeEventListener('contentUpdated', handleContentUpdate as EventListener);
-            window.removeEventListener('storage', handleStorageChange);
-        };
-    }, []);
 
     const handleMenuItemClick = (item: string) => {
         if (item === "Contacts") {
@@ -100,7 +22,7 @@ const SideNav = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         } else if (item === "Expertise") {
             // First close the side menu
             onClose();
-            
+
             // Use setTimeout to allow the menu closing animation to complete
             setTimeout(() => {
                 // Find the skills slider section and scroll to it
@@ -109,10 +31,10 @@ const SideNav = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                     // Get the element's position
                     const rect = skillsSection.getBoundingClientRect();
                     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                    
+
                     // Calculate position with offset (80px from the top)
                     const offsetPosition = rect.top + scrollTop - 80;
-                    
+
                     // Scroll with offset
                     window.scrollTo({
                         top: offsetPosition,
@@ -123,7 +45,7 @@ const SideNav = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         } else if (item === "Projects") {
             // First close the side menu
             onClose();
-            
+
             // Use setTimeout to allow the menu closing animation to complete
             setTimeout(() => {
                 // Find the projects section (with todo and inquiry boxes) and scroll to it
@@ -135,7 +57,7 @@ const SideNav = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         } else if (item === "Verified") {
             // First close the side menu
             onClose();
-            
+
             // Use setTimeout to allow the menu closing animation to complete
             setTimeout(() => {
                 // Find the verified section (with My Photo, Academic Results, and FAQ) and scroll to it
@@ -147,25 +69,25 @@ const SideNav = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         } else if (item === "One-Pager") {
             // First close the side menu
             onClose();
-            
+
             // Open resume in a cross-browser compatible way
             setTimeout(() => {
                 // Detect iOS devices
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
                 // Detect Android devices
                 const isAndroid = /Android/.test(navigator.userAgent);
-                
+
                 // Create a hidden anchor element for cross-browser compatibility
                 const link = document.createElement('a');
                 link.href = resumeUrl;
                 link.setAttribute('target', '_blank');
                 link.setAttribute('rel', 'noopener noreferrer');
-                
+
                 // If on mobile, attempt different approaches
                 if (isIOS || isAndroid) {
                     // Try to open PDF in new tab first
                     const newWindow = window.open(resumeUrl, '_blank');
-                    
+
                     // If window.open was blocked or unsuccessful, fall back to embedded viewer
                     if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                         setIsPdfViewerOpen(true);
@@ -183,7 +105,7 @@ const SideNav = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     const handleContactFormClose = () => {
         setIsContactFormVisible(false);
     };
-    
+
     const handlePdfViewerClose = () => {
         setIsPdfViewerOpen(false);
     };
@@ -199,21 +121,21 @@ const SideNav = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
             {/* Contact Form */}
             <ContactForm isVisible={isContactFormVisible && isOpen} onClose={handleContactFormClose} />
-            
+
             {/* Contact Form Backdrop */}
             {isContactFormVisible && isOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/30 transition-opacity duration-300"
                     onClick={handleContactFormClose}
                     style={{ zIndex: 45 }}
                 ></div>
             )}
-            
+
             {/* PDF Viewer */}
-            <PDFViewer 
-                pdfUrl={resumeUrl} 
-                isOpen={isPdfViewerOpen} 
-                onClose={handlePdfViewerClose} 
+            <PDFViewer
+                pdfUrl={resumeUrl}
+                isOpen={isPdfViewerOpen}
+                onClose={handlePdfViewerClose}
             />
 
             {/* Side Navigation Menu */}
@@ -250,11 +172,11 @@ const SideNav = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                                         animate={{ opacity: isOpen ? 1 : 0 }}
                                         transition={{ duration: 0.6, delay: index * 0.1 }}
                                     >
-                                        <div 
-                                          onClick={() => handleMenuItemClick(item)}
-                                          className="cursor-pointer"
+                                        <div
+                                            onClick={() => handleMenuItemClick(item)}
+                                            className="cursor-pointer"
                                         >
-                                          <FlipText className="pb-4 sm:pb-5 md:pb-6 w-fit">{item}</FlipText>
+                                            <FlipText className="pb-4 sm:pb-5 md:pb-6 w-fit">{item}</FlipText>
                                         </div>
                                     </motion.div>
                                 ))}

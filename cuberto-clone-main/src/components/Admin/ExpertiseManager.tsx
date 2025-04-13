@@ -1,591 +1,328 @@
 'use client';
+import axios from 'axios';
+import { useEffect, useRef, useState } from 'react';
 
-import { useState, useEffect, useRef } from 'react';
-import styles from '../../app/admin/admin.module.css';
-import { fetchContent, updateContent, setupContentPolling } from '@/utils/contentSync';
-
-interface Skill {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  iconColor: string;
-  backgroundImage: string;
-  proficiencyLevel: number;
-  learnMoreLink: string;
-}
-
-interface ImageData {
-  name: string;
-  data: string;
-  type: string;
-  size: number;
-  timestamp: number;
-}
+const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
 export default function ExpertiseManager() {
-  const [skills, setSkills] = useState<Skill[]>([]);
+  const [skills, setSkills] = useState<any[]>([]);
   const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     icon: '',
-    iconColor: '#0066ff',
     backgroundImage: '',
-    proficiencyLevel: 80,
+    proficiencyLevel: 0,
     learnMoreLink: ''
   });
 
-  useEffect(() => {
-    loadSkills();
-    loadUploadedImages();
-
-    // Set up polling for real-time updates
-    const cleanupPolling = setupContentPolling((data) => {
-      if (data.siteSkills) {
-        try {
-          setSkills(JSON.parse(data.siteSkills));
-        } catch (error) {
-          console.error('Error parsing skills from API:', error);
-        }
-      }
-
-      if (data.uploadedImages) {
-        try {
-          const apiImages = JSON.parse(data.uploadedImages);
-          localStorage.setItem('uploadedImages', JSON.stringify(apiImages));
-        } catch (error) {
-          console.error('Error parsing uploaded images from API:', error);
-        }
-      }
-    });
-
-    return () => {
-      if (cleanupPolling) cleanupPolling();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadSkills = async () => {
-    try {
-      // Try to get skills from the API first
-      const apiContent = await fetchContent();
-
-      if (apiContent && apiContent.siteSkills) {
-        setSkills(JSON.parse(apiContent.siteSkills));
-      } else {
-        // Fallback to localStorage if API fails
-        const savedSkills = localStorage.getItem('siteSkills');
-        if (savedSkills) {
-          setSkills(JSON.parse(savedSkills));
-        } else {
-          // Default skills if none exist
-          const defaultSkills = [
-            {
-              id: '1',
-              title: 'Web Development',
-              description: 'Building responsive websites and web applications',
-              icon: 'fa-code',
-              iconColor: '#0066ff',
-              backgroundImage: '/images/web-dev-bg.jpg',
-              proficiencyLevel: 90,
-              learnMoreLink: 'https://example.com/web-development'
-            },
-            {
-              id: '2',
-              title: 'UI/UX Design',
-              description: 'Creating intuitive and beautiful user interfaces',
-              icon: 'fa-palette',
-              iconColor: '#ff6600',
-              backgroundImage: '/images/uiux-bg.jpg',
-              proficiencyLevel: 85,
-              learnMoreLink: 'https://example.com/ui-ux-design'
-            }
-          ];
-          setSkills(defaultSkills);
-          saveSkills(defaultSkills);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading skills:', error);
-    }
-  };
-
-  const loadUploadedImages = async () => {
-    try {
-      // Try to get uploaded images from the API first
-      const apiContent = await fetchContent();
-
-      if (apiContent && apiContent.uploadedImages) {
-        localStorage.setItem('uploadedImages', apiContent.uploadedImages);
-      }
-    } catch (error) {
-      console.error('Error loading uploaded images:', error);
-    }
-  };
-
-  const saveSkills = async (updatedSkills: Skill[]) => {
-    // Save to localStorage for immediate local updates
-    localStorage.setItem('siteSkills', JSON.stringify(updatedSkills));
-
-    // Save to API for cross-device synchronization
-    try {
-      await updateContent('siteSkills', JSON.stringify(updatedSkills));
-
-      // Dispatch a custom event for real-time updates within the same tab
-      const event = new CustomEvent('contentUpdated', {
-        detail: {
-          type: 'skills',
-          content: updatedSkills
-        }
-      });
-      window.dispatchEvent(event);
-
-      // Also dispatch the skillsUpdated event for the ExpertiseSection component
-      const skillsEvent = new CustomEvent('skillsUpdated', {
-        detail: {
-          skills: updatedSkills
-        }
-      });
-      window.dispatchEvent(skillsEvent);
-    } catch (error) {
-      console.error('Error saving skills to API:', error);
-    }
-  };
-
-  const saveUploadedImages = async (images: ImageData[]) => {
-    // Save to localStorage for immediate local updates
-    localStorage.setItem('uploadedImages', JSON.stringify(images));
-
-    // Save to API for cross-device synchronization
-    try {
-      await updateContent('uploadedImages', JSON.stringify(images));
-    } catch (error) {
-      console.error('Error saving uploaded images to API:', error);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-
-    if (type === 'number') {
-      setFormData({
-        ...formData,
-        [name]: parseInt(value, 10)
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
-    }
-  };
-
   const handleAddNew = () => {
-    setFormData({
-      title: '',
-      description: '',
-      icon: '',
-      iconColor: '#0066ff',
-      backgroundImage: '',
-      proficiencyLevel: 80,
-      learnMoreLink: ''
-    });
     setIsAdding(true);
     setEditingId(null);
-  };
-
-  const handleEdit = (skill: Skill) => {
-    setFormData({
-      title: skill.title,
-      description: skill.description,
-      icon: skill.icon,
-      iconColor: skill.iconColor || '#0066ff',
-      backgroundImage: skill.backgroundImage || '',
-      proficiencyLevel: skill.proficiencyLevel || 80,
-      learnMoreLink: skill.learnMoreLink || ''
-    });
-    setEditingId(skill.id);
-    setIsAdding(false);
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this skill?')) {
-      const updatedSkills = skills.filter(skill => skill.id !== id);
-      setSkills(updatedSkills);
-      saveSkills(updatedSkills);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (editingId) {
-      // Update existing skill
-      const updatedSkills = skills.map(skill =>
-        skill.id === editingId ? { ...skill, ...formData } : skill
-      );
-      setSkills(updatedSkills);
-      saveSkills(updatedSkills);
-      setEditingId(null);
-    } else {
-      // Add new skill
-      const newSkill = {
-        id: Date.now().toString(),
-        ...formData
-      };
-      const updatedSkills = [...skills, newSkill];
-      setSkills(updatedSkills);
-      saveSkills(updatedSkills);
-      setIsAdding(false);
-    }
-
-    // Reset form
     setFormData({
       title: '',
       description: '',
       icon: '',
-      iconColor: '#0066ff',
       backgroundImage: '',
-      proficiencyLevel: 80,
+      proficiencyLevel: 0,
       learnMoreLink: ''
     });
+  };
+
+  const handleInputChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+
+    try {
+      if (editingId) {
+        // 🛠️ Update skill
+        const res = await axios.put(`${serverUrl}/expertise/${editingId}`, formData);
+
+        if (res.status !== 200) throw new Error('Failed to update skill');
+
+        setSkills(prev =>
+          prev.map(skill =>
+            skill.id === editingId || skill._id === editingId
+              ? { ...res.data, id: res.data._id }
+              : skill
+          )
+        );
+      } else {
+        // Add new skill
+        const res = await axios.post(`${serverUrl}/expertise/addExpertise`, formData);
+
+        const createdSkill = res.data;
+        setSkills(prev => [...prev, createdSkill]);
+      }
+
+      setIsAdding(false);
+      setEditingId(null);
+    } catch (error) {
+      console.error('Error submitting skill:', error);
+    }
   };
 
   const handleCancel = () => {
     setIsAdding(false);
     setEditingId(null);
-    setFormData({
-      title: '',
-      description: '',
-      icon: '',
-      iconColor: '#0066ff',
-      backgroundImage: '',
-      proficiencyLevel: 80,
-      learnMoreLink: ''
-    });
   };
 
-  // Handle file selection for background image upload
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleEdit = (skill: any) => {
+    setFormData(skill);
+    setEditingId(skill._id);
+    setIsAdding(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await axios.delete(`${serverUrl}/expertise/${id}`);
+
+      if (res.status === 200) {
+        setSkills(prev => prev.filter(skill => skill._id !== id));
+      } else {
+        console.error('Failed to delete skill:', res.statusText);
+      }
+    } catch (error) {
+      console.error('Error deleting skill:', error);
+      // Optionally: show toast or error message
+    }
+  };
+
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: any) => {
+    const file = e.target.files[0];
     if (!file) return;
 
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
-    }
+    setUploadingImage(true);
+    setUploadProgress(0);
 
-    // Check file size (limit to 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
-      return;
-    }
-
-    try {
-      setUploadingImage(true);
-      setUploadProgress(0);
-
-      // Create a simulated upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 200);
-
-      // Convert the file to base64
-      const base64 = await convertFileToBase64(file);
-
-      // Store the image in localStorage and API
-      const timestamp = Date.now();
-      const imageName = `expertise_bg_${timestamp}_${file.name.replace(/\s+/g, '_')}`;
-      const imageData = {
-        name: imageName,
-        data: base64,
-        type: file.type,
-        size: file.size,
-        timestamp
-      };
-
-      // Get existing images or create new array
-      const existingImagesStr = localStorage.getItem('uploadedImages') || '[]';
-      const existingImages = JSON.parse(existingImagesStr);
-
-      // Add new image to array
-      existingImages.push(imageData);
-
-      // Save to localStorage and API
-      await saveUploadedImages(existingImages);
-
-      // Update form data with the image URL (using data URL for immediate display)
-      setFormData({
-        ...formData,
-        backgroundImage: base64
+    const fakeUpload = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(fakeUpload);
+          setFormData(prev => ({
+            ...prev,
+            backgroundImage: URL.createObjectURL(file)
+          }));
+          setUploadingImage(false);
+        }
+        return prev + 10;
       });
-
-      // Complete progress
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-
-      // Reset after a short delay
-      setTimeout(() => {
-        setUploadingImage(false);
-        setUploadProgress(0);
-      }, 500);
-
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      setUploadingImage(false);
-      setUploadProgress(0);
-      alert('Failed to upload image. Please try again.');
-    }
+    }, 100);
   };
 
-  // Convert file to base64
-  const convertFileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-  };
+  useEffect(() => {
+    const fetchExpertise = async () => {
+      try {
+        const res = await axios.get(`${serverUrl}/expertise/all`);
+        setSkills(res.data.map(item => ({ ...item, id: item._id })));
 
-  // Trigger file input click
-  const triggerFileInput = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
+      } catch (error) {
+        console.error('Error fetching skills:', error);
+        // Optional: toast error
+      }
+    };
+
+    fetchExpertise();
+  }, []);
+
+  console.log(skills);
 
   return (
-    <div>
-      <h2 className={styles.sectionTitle}>Expertise Manager</h2>
+    <div className="max-w-4xl mx-auto p-6">
+      <h2 className="text-3xl font-bold mb-6">Expertise Manager</h2>
 
       {!isAdding && !editingId && (
-        <button onClick={handleAddNew} className={styles.actionButton}>
+        <button
+          onClick={handleAddNew}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
           Add New Skill
         </button>
       )}
 
       {(isAdding || editingId) && (
-        <form onSubmit={handleSubmit}>
-          <div className={styles.formGroup}>
-            <label htmlFor="title">Skill Title:</label>
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <div>
+            <label className="block font-medium">Skill Title:</label>
             <input
               type="text"
-              id="title"
               name="title"
               value={formData.title}
               onChange={handleInputChange}
               required
+              className="w-full border rounded-md p-2 mt-1"
             />
           </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="description">Description:</label>
+          <div>
+            <label className="block font-medium">Description:</label>
             <textarea
-              id="description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
               required
+              className="w-full border rounded-md p-2 mt-1"
             />
           </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="icon">Font Awesome Icon Code:</label>
+          <div>
+            <label className="block font-medium">Font Awesome Icon Code:</label>
             <input
               type="text"
-              id="icon"
               name="icon"
               value={formData.icon}
               onChange={handleInputChange}
               required
+              className="w-full border rounded-md p-2 mt-1"
             />
-            <small>{`Enter the Font Awesome icon code (e.g., 'fa-code', 'fa-palette')`}</small>
           </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="iconColor">Icon Color:</label>
-            <div className={styles.colorPickerContainer}>
-              <input
-                type="color"
-                id="iconColor"
-                name="iconColor"
-                value={formData.iconColor}
-                onChange={handleInputChange}
-              />
+          <div>
+            <label className="block font-medium">Background Image:</label>
+            <div className="flex items-center gap-4">
               <input
                 type="text"
-                value={formData.iconColor}
-                onChange={handleInputChange}
-                name="iconColor"
-              />
-            </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="backgroundImage">Background Image:</label>
-            <div className={styles.imageUploadContainer}>
-              <input
-                type="text"
-                id="backgroundImage"
                 name="backgroundImage"
                 value={formData.backgroundImage}
                 onChange={handleInputChange}
-                placeholder="Enter image URL or upload an image"
+                className="w-full border rounded-md p-2"
+                placeholder="Enter image URL or upload"
               />
               <button
                 type="button"
                 onClick={triggerFileInput}
-                className={styles.uploadButton}
+                className="px-3 py-2 bg-gray-700 text-white rounded-md disabled:opacity-50"
                 disabled={uploadingImage}
               >
-                {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                {uploadingImage ? 'Uploading...' : 'Upload'}
               </button>
               <input
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 accept="image/*"
-                style={{ display: 'none' }}
+                className="hidden"
               />
             </div>
             {uploadingImage && (
-              <div className={styles.progressContainer}>
+              <div className="w-full bg-gray-200 h-3 mt-2 rounded">
                 <div
-                  className={styles.progressBar}
+                  className="h-3 bg-green-500 rounded"
                   style={{ width: `${uploadProgress}%` }}
                 ></div>
-                <span>{uploadProgress}%</span>
               </div>
             )}
             {formData.backgroundImage && (
-              <div className={styles.imagePreview}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={formData.backgroundImage}
-                  alt="Background preview"
-                  style={{ maxWidth: '100%', maxHeight: '150px', marginTop: '10px' }}
-                />
-              </div>
+              <img
+                src={formData.backgroundImage}
+                alt="Preview"
+                className="mt-2 rounded-md max-h-40 object-cover"
+              />
             )}
           </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="proficiencyLevel">{`Proficiency Level (%):`}</label>
+          <div>
+            <label className="block font-medium">Proficiency Level (%):</label>
             <input
               type="number"
-              id="proficiencyLevel"
               name="proficiencyLevel"
               value={formData.proficiencyLevel}
               onChange={handleInputChange}
-              min="0"
-              max="100"
+              min={0}
+              max={100}
               required
+              className="w-full border rounded-md p-2 mt-1"
             />
           </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="learnMoreLink">Learn More Link:</label>
+          <div>
+            <label className="block font-medium">Learn More Link:</label>
             <input
               type="text"
-              id="learnMoreLink"
               name="learnMoreLink"
               value={formData.learnMoreLink}
               onChange={handleInputChange}
               placeholder="https://example.com"
+              className="w-full border rounded-md p-2 mt-1"
             />
           </div>
 
-          <div className={styles.formActions}>
-            <button type="submit" className={styles.saveButton}>
+          <div className="flex items-center gap-4">
+            <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md">
               {editingId ? 'Update Skill' : 'Add Skill'}
             </button>
-            <button type="button" onClick={handleCancel} className={styles.cancelButton}>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="px-4 py-2 bg-gray-500 text-white rounded-md"
+            >
               Cancel
             </button>
           </div>
         </form>
       )}
 
-      <div className={styles.itemsList}>
-        <h3>Current Skills</h3>
-        {skills.length === 0 ? (
-          <p>No skills added yet.</p>
-        ) : (
-          <div className={styles.responsiveGrid}>
+      {skills.length > 0 && (
+        <div className="mt-10">
+          <h3 className="text-2xl font-semibold mb-4">Current Skills</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {skills.map(skill => (
-              <div key={skill.id} className={styles.responsiveItemCard}>
-                <h4 className={styles.skillTitle}>{skill.title}</h4>
-                <p className={styles.skillDescription}>{skill.description}</p>
-
-                <div className={styles.skillDetails}>
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Icon:</span>
-                    <span className={styles.detailValue}>{skill.icon}</span>
+              <div key={skill.id} className="bg-white shadow rounded-lg overflow-hidden">
+                <div
+                  className="h-32 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${skill.backgroundImage})` }}
+                ></div>
+                <div className="p-4">
+                  <h4 className="text-lg font-bold">{skill.title}</h4>
+                  <p className="text-gray-600 text-sm">{skill.description}</p>
+                  <div className="flex justify-between items-center mt-2 text-sm">
+                    <i className={`fa ${skill.icon} text-xl`} />
+                    <span>{skill.proficiencyLevel}%</span>
                   </div>
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Color:</span>
-                    <span className={styles.detailValue}>
-                      <span style={{
-                        display: 'inline-block',
-                        width: '14px',
-                        height: '14px',
-                        backgroundColor: skill.iconColor,
-                        marginRight: '5px',
-                        borderRadius: '2px'
-                      }}></span>
-                      {skill.iconColor}
-                    </span>
+                  {skill.learnMoreLink && (
+                    <a
+                      href={skill.learnMoreLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline block mt-2"
+                    >
+                      Learn More
+                    </a>
+                  )}
+                  <div className="flex justify-between mt-4">
+                    <button
+                      onClick={() => handleEdit(skill)}
+                      className="px-3 py-1 bg-yellow-500 text-white text-sm rounded-md"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(skill.id)}
+                      className="px-3 py-1 bg-red-600 text-white text-sm rounded-md"
+                    >
+                      Delete
+                    </button>
                   </div>
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Proficiency:</span>
-                    <span className={styles.detailValue}>{skill.proficiencyLevel}%</span>
-                  </div>
-                </div>
-
-                {skill.backgroundImage && (
-                  <div className={styles.responsiveImageContainer}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={skill.backgroundImage}
-                      alt={`${skill.title} background`}
-                      className={styles.responsiveImage}
-                    />
-                  </div>
-                )}
-
-                <div className={styles.responsiveItemActions}>
-                  <button
-                    onClick={() => handleEdit(skill)}
-                    className={`${styles.actionButton} ${styles.editButton}`}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(skill.id)}
-                    className={`${styles.actionButton} ${styles.deleteButton}`}
-                  >
-                    Delete
-                  </button>
                 </div>
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
