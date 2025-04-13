@@ -30,6 +30,7 @@ const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
 const MovieSwiper: React.FC = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
+  // eslint-disable-next-line
   const [showSection, setShowSection] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -41,6 +42,7 @@ const MovieSwiper: React.FC = () => {
   const fetchExpertise = async () => {
     try {
       const res = await axios.get(`${serverUrl}/expertise/all`);
+      // @ts-expect-error any-type
       setSkills(res.data.map(item => ({ ...item, id: item._id })));
 
     } catch (error) {

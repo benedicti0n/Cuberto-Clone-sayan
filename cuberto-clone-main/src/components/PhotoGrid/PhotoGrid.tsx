@@ -24,6 +24,7 @@ const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
 const PhotoGrid: React.FC<PhotoGridProps> = () => {
   const [projects, setProjects] = useState<Project[]>([]);
+  // eslint-disable-next-line
   const [showSection, setShowSection] = useState(true);
   const [showInfoIndex, setShowInfoIndex] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);

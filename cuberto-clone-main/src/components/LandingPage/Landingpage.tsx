@@ -6,10 +6,10 @@ import { TextAnimate } from '../ui/magicui/text-animate';
 import * as motion from "motion/react-client";
 
 const Landingpage = () => {
-    const [line1, setLine1] = useState('I am a sharp,');
-    const [line2, setLine2] = useState('skilled,');
-    const [line3, setLine3] = useState('adept');
-    const [line4, setLine4] = useState('mind.');
+    const [line1, setLine1] = useState('');
+    const [line2, setLine2] = useState('');
+    const [line3, setLine3] = useState('');
+    const [line4, setLine4] = useState('');
 
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
@@ -33,6 +33,7 @@ const Landingpage = () => {
         };
 
         fetchHeaderLines();
+        // eslint-disable-next-line
     }, []);
 
     return (

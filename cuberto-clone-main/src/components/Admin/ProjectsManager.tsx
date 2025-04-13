@@ -157,6 +157,7 @@ const ProjectManagerForm = () => {
           <p><strong>Tech Stack:</strong> {formData.techStack}</p>
           <p><strong>Technologies:</strong> {formData.technologiesUsed}</p>
           <p><strong>URL:</strong> {formData.projectUrl}</p>
+          {/* eslint-disable-next-line */}
           {formData.imageUrl && <img src={formData.imageUrl} alt="Project" className="w-64 h-auto mt-2 rounded" />}
         </div>
       )}
@@ -170,6 +171,7 @@ const ProjectManagerForm = () => {
             <p className="text-xs text-gray-600">Stack: {project.techStack}</p>
             <p className="text-xs text-gray-600">Tech: {project.technologiesUsed}</p>
             {project.imageUrl && (
+              // eslint-disable-next-line
               <img src={project.imageUrl} alt="project" className="w-full mt-2 rounded" />
             )}
             <a

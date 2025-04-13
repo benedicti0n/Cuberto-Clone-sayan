@@ -9,6 +9,7 @@ import HeaderLineEditor from '../../components/Admin/HeaderLineEditor';
 import ProjectsManager from '../../components/Admin/ProjectsManager';
 import ExpertiseManager from '../../components/Admin/ExpertiseManager';
 import VerifiedManager from '../../components/Admin/VerifiedManager/VerifiedManager';
+import ContactFormSection from '@/components/Admin/ContactFormSection';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -123,6 +124,12 @@ export default function AdminPage() {
         >
           Verified Section
         </button>
+        <button
+          className={activeTab === 'contact' ? styles.activeTab : ''}
+          onClick={() => selectTab('contact')}
+        >
+          Contact Forms
+        </button>
       </div>
 
       <div className={styles.adminContent}>
@@ -130,6 +137,7 @@ export default function AdminPage() {
         {activeTab === 'projects' && <ProjectsManager />}
         {activeTab === 'expertise' && <ExpertiseManager />}
         {activeTab === 'verified' && <VerifiedManager />}
+        {activeTab === 'contact' && <ContactFormSection />}
       </div>
     </div>
   );
