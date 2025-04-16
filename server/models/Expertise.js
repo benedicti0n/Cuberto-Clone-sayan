@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const ExpertiseSchema = new mongoose.Schema({
+const expertiseSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true
@@ -17,6 +17,10 @@ const ExpertiseSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    imageData: {
+        type: Buffer,
+        required: false
+    },
     proficiencyLevel: {
         type: Number,
         required: true,
@@ -24,8 +28,9 @@ const ExpertiseSchema = new mongoose.Schema({
         max: 100
     },
     learnMoreLink: {
-        type: String
+        type: String,
+        required: false
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Expertise', ExpertiseSchema);
+module.exports = mongoose.model('Expertise', expertiseSchema);

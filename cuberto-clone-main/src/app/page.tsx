@@ -160,13 +160,13 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative py-6" id="projects">
+      <div className="relative pt-6" id="projects">
         <ScrollAnimation direction="fade" delay={0.2}>
           <PhotoGrid />
         </ScrollAnimation>
       </div>
 
-      <div className="relative mb-0">
+      <div className="relative mb-0 pt-2">
         <ScrollAnimation direction="up" delay={0.3}>
           <MovieSwiper />
         </ScrollAnimation>
