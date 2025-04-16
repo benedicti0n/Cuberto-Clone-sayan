@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faCircleInfo, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 // import { fetchContent, setupContentPolling } from '@/utils/contentSync';
 
 interface Project {
@@ -110,7 +110,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
 
   return (
     <section className="w-full bg-white">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {memoizedProjects.map((project, index) => (
           <div
             key={project._id}
@@ -188,7 +188,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
                       className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 transition-all"
                       onClick={() => toggleInfo(index)}
                     >
-                      <FontAwesomeIcon icon={faCircleInfo} className="text-gray-700" />
+                      <FontAwesomeIcon icon={faCircleXmark} className="text-gray-700" />
                     </button>
                   )}
 

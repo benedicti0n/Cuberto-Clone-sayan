@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay, Navigation } from 'swiper/modules';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
@@ -103,11 +102,11 @@ const MovieSwiper: React.FC = () => {
             disableOnInteraction: false,
           }}
           modules={[Pagination, Autoplay, Navigation]}
-          className="w-full h-[497px] md:h-[550px] lg:h-[650px] px-6 max-w-full mx-auto"
+          className="w-full h-[497px] md:h-[550px] lg:h-[650px] px-6 max-w-full"
           onSlideChange={handleSlideChange}
         >
           {skills.map((skill, index) => (
-            <SwiperSlide key={skill._id} className="relative w-full h-full overflow-hidden shadow-lg swiper-slide-content transition-all duration-500">
+            <SwiperSlide key={skill._id} className="relative w-full h-full overflow-hidden shadow-lg swiper-slide-content transition-all duration-500 -mx-1">
               <div
                 className="absolute inset-0 w-full h-full bg-cover bg-center"
                 style={{ backgroundImage: `url(${skill.backgroundImage})` }}
@@ -121,10 +120,6 @@ const MovieSwiper: React.FC = () => {
 
               <div className="absolute bottom-16 md:bottom-20 left-6 md:left-10 max-w-2xl z-10 text-white">
                 <div className="mb-2 md:mb-4">
-                  <FontAwesomeIcon
-                    icon={skill.icon}
-                    className="text-5xl md:text-7xl lg:text-8xl"
-                  />
                 </div>
                 <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-2 md:mb-3">{skill.title}</h2>
                 <p className="text-sm md:text-lg mb-6 md:mb-8">{skill.description}</p>
@@ -164,7 +159,7 @@ const MovieSwiper: React.FC = () => {
       </section>
 
       {/* Pagination placed in the gap between expertise and verified sections */}
-      <div className="w-full py-6 bg-white">
+      <div className="w-full py-2 bg-white">
         <div className="swiper-custom-pagination flex justify-center items-center my-2">
           {/* Pagination bullets will be inserted here by Swiper */}
         </div>

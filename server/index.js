@@ -24,7 +24,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // CORS config
 app.use(cors({
-  origin: 'https://cuberto-clone-puce.vercel.app/',
+  origin: ['https://cuberto-clone-puce.vercel.app/', "http://localhost:3000"],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));

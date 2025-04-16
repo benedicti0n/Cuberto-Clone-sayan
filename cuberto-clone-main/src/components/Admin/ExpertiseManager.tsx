@@ -4,6 +4,16 @@ import { useEffect, useRef, useState } from 'react';
 
 const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
+interface ExpertiseFormData {
+  title: string;
+  description: string;
+  icon: string;
+  backgroundImage: string;
+  proficiencyLevel: number;
+  learnMoreLink: string;
+  _id?: string;
+}
+
 export default function ExpertiseManager() {
   const [skills, setSkills] = useState<any[]>([]);
   const [isAdding, setIsAdding] = useState(false);
@@ -12,7 +22,7 @@ export default function ExpertiseManager() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ExpertiseFormData>({
     title: '',
     description: '',
     icon: '',
@@ -106,22 +116,56 @@ export default function ExpertiseManager() {
     const file = e.target.files[0];
     if (!file) return;
 
+    // If it's a URL input (not a file upload)
+    if (typeof file === 'string') {
+      setFormData(prev => ({
+        ...prev,
+        backgroundImage: file
+      }));
+      return;
+    }
+
     setUploadingImage(true);
     setUploadProgress(0);
 
-    const fakeUpload = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(fakeUpload);
-          setFormData(prev => ({
-            ...prev,
-            backgroundImage: URL.createObjectURL(file)
-          }));
-          setUploadingImage(false);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', file);
+      uploadFormData.append('title', formData.title);
+      uploadFormData.append('description', formData.description);
+      uploadFormData.append('icon', formData.icon);
+      uploadFormData.append('proficiencyLevel', formData.proficiencyLevel.toString());
+      uploadFormData.append('learnMoreLink', formData.learnMoreLink);
+      uploadFormData.append('backgroundImage', formData.backgroundImage);
+
+      const response = await axios.post(`${serverUrl}/expertise/addExpertise`, uploadFormData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(progress);
+          }
         }
-        return prev + 10;
       });
-    }, 100);
+
+      if (response.data && response.data.expertise) {
+        setFormData(prev => ({
+          ...prev,
+          backgroundImage: response.data.expertise.backgroundImage
+        }));
+        // Show success message
+        alert('Image uploaded successfully!');
+      }
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      // Show more detailed error message
+      const errorMessage = error.response?.data?.message || 'Failed to upload image. Please try again.';
+      alert(errorMessage);
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   useEffect(() => {
@@ -228,9 +272,10 @@ export default function ExpertiseManager() {
               </div>
             )}
             {formData.backgroundImage && (
-              // eslint-disable-next-line
               <img
-                src={formData.backgroundImage}
+                src={formData.backgroundImage.startsWith('http')
+                  ? formData.backgroundImage
+                  : `${serverUrl}/expertise/image/${formData._id}`}
                 alt="Preview"
                 className="mt-2 rounded-md max-h-40 object-cover"
               />
@@ -283,10 +328,14 @@ export default function ExpertiseManager() {
           <h3 className="text-2xl font-semibold mb-4">Current Skills</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {skills.map(skill => (
-              <div key={skill.id} className="bg-white shadow rounded-lg overflow-hidden">
+              <div key={skill._id} className="bg-white shadow rounded-lg overflow-hidden">
                 <div
                   className="h-32 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${skill.backgroundImage})` }}
+                  style={{
+                    backgroundImage: `url(${skill.backgroundImage.startsWith('http')
+                      ? skill.backgroundImage
+                      : `${serverUrl}/expertise/image/${skill._id}`})`
+                  }}
                 ></div>
                 <div className="p-4">
                   <h4 className="text-lg font-bold">{skill.title}</h4>
@@ -313,7 +362,7 @@ export default function ExpertiseManager() {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(skill.id)}
+                      onClick={() => handleDelete(skill._id)}
                       className="px-3 py-1 bg-red-600 text-white text-sm rounded-md"
                     >
                       Delete
