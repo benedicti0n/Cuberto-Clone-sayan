@@ -1,16 +1,22 @@
-'use client';
-import axios from 'axios';
-import { useEffect, useRef, useState } from 'react';
+"use client";
+import axios from "axios";
+import { useEffect, useRef, useState } from "react";
 
-const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+
+type ImageData = {
+  type: "Buffer";
+  data: number[];
+};
 
 interface ExpertiseFormData {
   title: string;
   description: string;
   icon: string;
-  backgroundImage: string;
+  backgroundImage: string | any;
   proficiencyLevel: number;
   learnMoreLink: string;
+  imageData?: ImageData;
   _id?: string;
 }
 
@@ -23,30 +29,30 @@ export default function ExpertiseManager() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formData, setFormData] = useState<ExpertiseFormData>({
-    title: '',
-    description: '',
-    icon: '',
-    backgroundImage: '',
+    title: "",
+    description: "",
+    icon: "",
+    backgroundImage: "",
     proficiencyLevel: 0,
-    learnMoreLink: ''
+    learnMoreLink: "",
   });
 
   const handleAddNew = () => {
     setIsAdding(true);
     setEditingId(null);
     setFormData({
-      title: '',
-      description: '',
-      icon: '',
-      backgroundImage: '',
+      title: "",
+      description: "",
+      icon: "",
+      backgroundImage: "",
       proficiencyLevel: 0,
-      learnMoreLink: ''
+      learnMoreLink: "",
     });
   };
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: any) => {
@@ -55,12 +61,15 @@ export default function ExpertiseManager() {
     try {
       if (editingId) {
         // 🛠️ Update skill
-        const res = await axios.put(`${serverUrl}/expertise/${editingId}`, formData);
+        const res = await axios.put(
+          `${serverUrl}/expertise/${editingId}`,
+          formData
+        );
 
-        if (res.status !== 200) throw new Error('Failed to update skill');
+        if (res.status !== 200) throw new Error("Failed to update skill");
 
-        setSkills(prev =>
-          prev.map(skill =>
+        setSkills((prev) =>
+          prev.map((skill) =>
             skill.id === editingId || skill._id === editingId
               ? { ...res.data, id: res.data._id }
               : skill
@@ -68,16 +77,19 @@ export default function ExpertiseManager() {
         );
       } else {
         // Add new skill
-        const res = await axios.post(`${serverUrl}/expertise/addExpertise`, formData);
+        const res = await axios.post(
+          `${serverUrl}/expertise/addExpertise`,
+          formData
+        );
 
         const createdSkill = res.data;
-        setSkills(prev => [...prev, createdSkill]);
+        setSkills((prev) => [...prev, createdSkill]);
       }
 
       setIsAdding(false);
       setEditingId(null);
     } catch (error) {
-      console.error('Error submitting skill:', error);
+      console.error("Error submitting skill:", error);
     }
   };
 
@@ -97,16 +109,15 @@ export default function ExpertiseManager() {
       const res = await axios.delete(`${serverUrl}/expertise/${id}`);
 
       if (res.status === 200) {
-        setSkills(prev => prev.filter(skill => skill._id !== id));
+        setSkills((prev) => prev.filter((skill) => skill._id !== id));
       } else {
-        console.error('Failed to delete skill:', res.statusText);
+        console.error("Failed to delete skill:", res.statusText);
       }
     } catch (error) {
-      console.error('Error deleting skill:', error);
+      console.error("Error deleting skill:", error);
       // Optionally: show toast or error message
     }
   };
-
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
@@ -117,10 +128,10 @@ export default function ExpertiseManager() {
     if (!file) return;
 
     // If it's a URL input (not a file upload)
-    if (typeof file === 'string') {
-      setFormData(prev => ({
+    if (typeof file === "string") {
+      setFormData((prev) => ({
         ...prev,
-        backgroundImage: file
+        backgroundImage: file,
       }));
       return;
     }
@@ -130,38 +141,49 @@ export default function ExpertiseManager() {
 
     try {
       const uploadFormData = new FormData();
-      uploadFormData.append('image', file);
-      uploadFormData.append('title', formData.title);
-      uploadFormData.append('description', formData.description);
-      uploadFormData.append('icon', formData.icon);
-      uploadFormData.append('proficiencyLevel', formData.proficiencyLevel.toString());
-      uploadFormData.append('learnMoreLink', formData.learnMoreLink);
-      uploadFormData.append('backgroundImage', formData.backgroundImage);
+      uploadFormData.append("image", file);
+      uploadFormData.append("title", formData.title);
+      uploadFormData.append("description", formData.description);
+      uploadFormData.append("icon", formData.icon);
+      uploadFormData.append(
+        "proficiencyLevel",
+        formData.proficiencyLevel.toString()
+      );
+      uploadFormData.append("learnMoreLink", formData.learnMoreLink);
+      uploadFormData.append("backgroundImage", formData.backgroundImage);
 
-      const response = await axios.post(`${serverUrl}/expertise/addExpertise`, uploadFormData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(progress);
-          }
+      const response = await axios.post(
+        `${serverUrl}/expertise/addExpertise`,
+        uploadFormData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const progress = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              setUploadProgress(progress);
+            }
+          },
         }
-      });
+      );
 
       if (response.data && response.data.expertise) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          backgroundImage: response.data.expertise.backgroundImage
+          backgroundImage: response.data.expertise.backgroundImage,
         }));
         // Show success message
-        alert('Image uploaded successfully!');
+        alert("Image uploaded successfully!");
       }
     } catch (error: any) {
-      console.error('Error uploading image:', error);
+      console.error("Error uploading image:", error);
       // Show more detailed error message
-      const errorMessage = error.response?.data?.message || 'Failed to upload image. Please try again.';
+      const errorMessage =
+        error.response?.data?.message ||
+        "Failed to upload image. Please try again.";
       alert(errorMessage);
     } finally {
       setUploadingImage(false);
@@ -173,10 +195,9 @@ export default function ExpertiseManager() {
       try {
         const res = await axios.get(`${serverUrl}/expertise/all`);
         // @ts-expect-error any-type
-        setSkills(res.data.map(item => ({ ...item, id: item._id })));
-
+        setSkills(res.data.map((item) => ({ ...item, id: item._id })));
       } catch (error) {
-        console.error('Error fetching skills:', error);
+        console.error("Error fetching skills:", error);
         // Optional: toast error
       }
     };
@@ -185,6 +206,8 @@ export default function ExpertiseManager() {
   }, []);
 
   console.log(skills);
+
+  console.log("----------BACKGROUND IMAGE----------", formData.backgroundImage);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -253,7 +276,7 @@ export default function ExpertiseManager() {
                 className="px-3 py-2 bg-gray-700 text-white rounded-md disabled:opacity-50"
                 disabled={uploadingImage}
               >
-                {uploadingImage ? 'Uploading...' : 'Upload'}
+                {uploadingImage ? "Uploading..." : "Upload"}
               </button>
               <input
                 type="file"
@@ -273,9 +296,15 @@ export default function ExpertiseManager() {
             )}
             {formData.backgroundImage && (
               <img
-                src={formData.backgroundImage.startsWith('http')
-                  ? formData.backgroundImage
-                  : `${serverUrl}/expertise/image/${formData._id}`}
+                src={
+                  formData?.backgroundImage?.startsWith("http")
+                    ? formData.backgroundImage
+                    : formData.imageData?.data
+                    ? `data:image/png;base64,${Buffer.from(
+                        formData.imageData.data
+                      ).toString("base64")}`
+                    : `${serverUrl}/expertise/image/${formData._id}`
+                }
                 alt="Preview"
                 className="mt-2 rounded-md max-h-40 object-cover"
               />
@@ -309,8 +338,11 @@ export default function ExpertiseManager() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md">
-              {editingId ? 'Update Skill' : 'Add Skill'}
+            <button
+              type="submit"
+              className="px-4 py-2 bg-green-600 text-white rounded-md"
+            >
+              {editingId ? "Update Skill" : "Add Skill"}
             </button>
             <button
               type="button"
@@ -327,14 +359,23 @@ export default function ExpertiseManager() {
         <div className="mt-10">
           <h3 className="text-2xl font-semibold mb-4">Current Skills</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {skills.map(skill => (
-              <div key={skill._id} className="bg-white shadow rounded-lg overflow-hidden">
+            {skills.map((skill) => (
+              <div
+                key={skill._id}
+                className="bg-white shadow rounded-lg overflow-hidden"
+              >
                 <div
                   className="h-32 bg-cover bg-center"
                   style={{
-                    backgroundImage: `url(${skill.backgroundImage.startsWith('http')
-                      ? skill.backgroundImage
-                      : `${serverUrl}/expertise/image/${skill._id}`})`
+                    backgroundImage: `url(${
+                      skill.backgroundImage.startsWith("http")
+                        ? skill.backgroundImage
+                        : skill.imageData?.data
+                        ? `data:image/png;base64,${Buffer.from(
+                            skill.imageData.data
+                          ).toString("base64")}`
+                        : `${serverUrl}/expertise/image/${skill._id}`
+                    })`,
                   }}
                 ></div>
                 <div className="p-4">
