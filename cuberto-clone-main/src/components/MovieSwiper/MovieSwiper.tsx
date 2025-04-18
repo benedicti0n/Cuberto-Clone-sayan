@@ -1,19 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, Autoplay, Navigation } from 'swiper/modules';
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { fas } from '@fortawesome/free-solid-svg-icons';
-import { fab } from '@fortawesome/free-brands-svg-icons';
-// import { fetchContent, setupContentPolling } from '@/utils/contentSync';
-
+import React, { useEffect, useState } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Autoplay, Navigation } from "swiper/modules";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { fas } from "@fortawesome/free-solid-svg-icons";
+import { fab } from "@fortawesome/free-brands-svg-icons";
 // Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
-import axios from 'axios';
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
+import axios from "axios";
 
 // Add all Font Awesome icons to the library
 library.add(fas, fab);
+
+type ImageData = {
+  type: "Buffer";
+  data: number[];
+};
 
 interface Skill {
   _id: number;
@@ -22,14 +25,43 @@ interface Skill {
   icon: any;
   backgroundImage: string;
   proficiencyLevel: number;
+  imageData?: ImageData;
   learnMoreLink: string;
 }
 
-const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+
+// Helper function to convert buffer data to base64 string
+const arrayBufferToBase64 = (buffer: any) => {
+  if (!buffer || !Array.isArray(buffer)) return "";
+
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+};
+
+// Function to get the appropriate image URL
+const getImageUrl = (skill: Skill) => {
+  // If it's a URL
+  if (skill.backgroundImage?.startsWith("http")) {
+    return skill.backgroundImage;
+  }
+
+  // If we have image data as buffer
+  if (skill.imageData?.data && Array.isArray(skill.imageData.data)) {
+    return `data:image/png;base64,${arrayBufferToBase64(skill.imageData.data)}`;
+  }
+
+  // Fallback to server endpoint
+  return `${serverUrl}/expertise/image/${skill._id}`;
+};
 
 const MovieSwiper: React.FC = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
-  // eslint-disable-next-line
   const [showSection, setShowSection] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -42,11 +74,9 @@ const MovieSwiper: React.FC = () => {
     try {
       const res = await axios.get(`${serverUrl}/expertise/all`);
       // @ts-expect-error any-type
-      setSkills(res.data.map(item => ({ ...item, id: item._id })));
-
+      setSkills(res.data.map((item) => ({ ...item, id: item._id })));
     } catch (error) {
-      console.error('Error fetching skills:', error);
-      // Optional: toast error
+      console.error("Error fetching skills:", error);
     }
   };
 
@@ -55,7 +85,7 @@ const MovieSwiper: React.FC = () => {
   }, []);
 
   // If no skills to show, don't render the section at all
-  if (!showSection) {
+  if (!showSection || skills.length === 0) {
     return null;
   }
 
@@ -65,21 +95,11 @@ const MovieSwiper: React.FC = () => {
         <Swiper
           slidesPerView={1.3}
           breakpoints={{
-            640: {
-              slidesPerView: 1.3
-            },
-            768: {
-              slidesPerView: 1.3
-            },
-            1024: {
-              slidesPerView: 1.3
-            },
-            1280: {
-              slidesPerView: 1.3
-            },
-            1536: {
-              slidesPerView: 1.3
-            }
+            640: { slidesPerView: 1.3 },
+            768: { slidesPerView: 1.3 },
+            1024: { slidesPerView: 1.3 },
+            1280: { slidesPerView: 1.3 },
+            1536: { slidesPerView: 1.3 },
           }}
           spaceBetween={15}
           centeredSlides={true}
@@ -87,15 +107,15 @@ const MovieSwiper: React.FC = () => {
           loop={true}
           pagination={{
             clickable: true,
-            el: '.swiper-custom-pagination',
-            type: 'bullets',
+            el: ".swiper-custom-pagination",
+            type: "bullets",
             renderBullet: function (index, className) {
               return `<span class="${className} rounded-full"></span>`;
             },
           }}
           navigation={{
-            prevEl: '.swiper-button-prev',
-            nextEl: '.swiper-button-next',
+            prevEl: ".swiper-button-prev",
+            nextEl: ".swiper-button-next",
           }}
           autoplay={{
             delay: 5000,
@@ -106,48 +126,72 @@ const MovieSwiper: React.FC = () => {
           onSlideChange={handleSlideChange}
         >
           {skills.map((skill, index) => (
-            <SwiperSlide key={skill._id} className="relative w-full h-full overflow-hidden shadow-lg swiper-slide-content transition-all duration-500 -mx-1">
+            <SwiperSlide
+              key={skill._id}
+              className="relative w-full h-full overflow-hidden shadow-lg swiper-slide-content transition-all duration-500 -mx-1"
+            >
               <div
                 className="absolute inset-0 w-full h-full bg-cover bg-center"
-                style={{ backgroundImage: `url(${skill.backgroundImage})` }}
+                style={{ backgroundImage: `url(${getImageUrl(skill)})` }}
               >
                 {/* Conditional gradient overlay - only show on non-active slides */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 transition-opacity duration-500 ${index === activeIndex ? 'opacity-0' : 'opacity-100'
-                    }`}
+                  className={`absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 transition-opacity duration-500 ${
+                    index === activeIndex ? "opacity-0" : "opacity-100"
+                  }`}
                 ></div>
               </div>
 
               <div className="absolute bottom-16 md:bottom-20 left-6 md:left-10 max-w-2xl z-10 text-white">
-                <div className="mb-2 md:mb-4">
-                </div>
-                <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-2 md:mb-3">{skill.title}</h2>
-                <p className="text-sm md:text-lg mb-6 md:mb-8">{skill.description}</p>
-                <a
-                  href={skill.learnMoreLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-white text-black py-2 px-6 md:py-3 md:px-8 rounded-full text-sm md:text-base font-medium hover:bg-opacity-90 transition-all inline-flex items-center"
-                >
-                  Learn more
-                  <svg className="w-3 h-3 md:w-4 md:h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </a>
+                <div className="mb-2 md:mb-4"></div>
+                <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-2 md:mb-3">
+                  {skill.title}
+                </h2>
+                <p className="text-sm md:text-lg mb-6 md:mb-8">
+                  {skill.description}
+                </p>
+                {skill.learnMoreLink && (
+                  <a
+                    href={skill.learnMoreLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-white text-black py-2 px-6 md:py-3 md:px-8 rounded-full text-sm md:text-base font-medium hover:bg-opacity-90 transition-all inline-flex items-center"
+                  >
+                    Learn more
+                    <svg
+                      className="w-3 h-3 md:w-4 md:h-4 ml-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </a>
+                )}
               </div>
 
               <div className="absolute bottom-6 md:bottom-8 right-6 md:right-10 z-10">
                 <div className="flex items-center bg-white/30 backdrop-blur-sm py-0.5 px-2 md:py-1 md:px-3 rounded-full">
-                  <span className="text-white text-xs md:text-sm mr-1 md:mr-2">Proficiency:</span>
+                  <span className="text-white text-xs md:text-sm mr-1 md:mr-2">
+                    Proficiency:
+                  </span>
                   <div className="w-16 md:w-24 bg-white/30 rounded-full h-1.5 md:h-2">
                     <div
-                      className="h-1.5 md:h-2 rounded-full"
+                      className="h-1.5 md:h-2 rounded-full bg-white"
                       style={{
                         width: `${skill.proficiencyLevel}%`,
                       }}
                     ></div>
                   </div>
-                  <span className="text-white text-xs md:text-sm ml-1 md:ml-2">{skill.proficiencyLevel}%</span>
+                  <span className="text-white text-xs md:text-sm ml-1 md:ml-2">
+                    {skill.proficiencyLevel}%
+                  </span>
                 </div>
               </div>
             </SwiperSlide>
