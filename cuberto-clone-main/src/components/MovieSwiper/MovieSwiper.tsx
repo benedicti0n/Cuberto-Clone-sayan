@@ -60,6 +60,8 @@ const getImageUrl = (skill: Skill) => {
   return `${serverUrl}/expertise/image/${skill._id}`;
 };
 
+const DEFAULT_PLACEHOLDER = "/path/to/default/placeholder.jpg"; // replace with your default placeholder image
+
 const MovieSwiper: React.FC = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
   // eslint-disable-next-line
@@ -69,6 +71,11 @@ const MovieSwiper: React.FC = () => {
   // Handle slide change to track the active index
   const handleSlideChange = (swiper: any) => {
     setActiveIndex(swiper.realIndex);
+  };
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('Image failed to load:', e.currentTarget.src);
+    e.currentTarget.src = DEFAULT_PLACEHOLDER;
   };
 
   const fetchExpertise = async () => {
@@ -131,16 +138,17 @@ const MovieSwiper: React.FC = () => {
               key={skill._id}
               className="relative w-full h-full overflow-hidden shadow-lg swiper-slide-content transition-all duration-500 -mx-1"
             >
+              <img
+                src={getImageUrl(skill)}
+                alt={skill.title}
+                onError={handleImageError}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              {/* Conditional gradient overlay - only show on non-active slides */}
               <div
-                className="absolute inset-0 w-full h-full bg-cover bg-center"
-                style={{ backgroundImage: `url(${getImageUrl(skill)})` }}
-              >
-                {/* Conditional gradient overlay - only show on non-active slides */}
-                <div
-                  className={`absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 transition-opacity duration-500 ${index === activeIndex ? "opacity-0" : "opacity-100"
-                    }`}
-                ></div>
-              </div>
+                className={`absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 transition-opacity duration-500 ${index === activeIndex ? "opacity-0" : "opacity-100"
+                  }`}
+              ></div>
 
               <div className="absolute bottom-16 md:bottom-20 left-6 md:left-10 max-w-2xl z-10 text-white">
                 <div className="mb-2 md:mb-4"></div>
