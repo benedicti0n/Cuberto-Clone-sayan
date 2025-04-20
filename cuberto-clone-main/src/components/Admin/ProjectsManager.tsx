@@ -36,12 +36,18 @@ const ProjectManagerForm = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear the other image type when one is set
+    if (name === 'imageUrl' && value) {
+      setFormData(prev => ({ ...prev, [name]: value, imageFile: null }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    setFormData(prev => ({ ...prev, imageFile: file }));
+    // Clear imageUrl when file is selected
+    setFormData(prev => ({ ...prev, imageFile: file, imageUrl: "" }));
   };
 
   const handleCancel = () => {
@@ -62,31 +68,39 @@ const ProjectManagerForm = () => {
     e.preventDefault();
     setIsSaving(true);
 
-    const data = new FormData();
-    data.append("title", formData.title);
-    data.append("description", formData.description);
-    data.append("footerText", formData.footerText);
-    data.append("techStack", formData.techStack);
-    data.append("technologiesUsed", formData.technologiesUsed);
-    data.append("projectUrl", formData.projectUrl);
-    data.append("imageUrl", formData.imageUrl);
-    if (formData.imageFile) {
-      data.append("imageFile", formData.imageFile);
-    }
-
     try {
+      const data = new FormData();
+      data.append("title", formData.title);
+      data.append("description", formData.description);
+      data.append("footerText", formData.footerText);
+      data.append("techStack", formData.techStack);
+      data.append("technologiesUsed", formData.technologiesUsed);
+      data.append("projectUrl", formData.projectUrl);
+
+      // Handle image data - using 'image' to match backend multer configuration
+      if (formData.imageUrl) {
+        data.append("imageUrl", formData.imageUrl);
+      } else if (formData.imageFile) {
+        data.append("image", formData.imageFile); // Changed from 'file' to 'image' to match multer config
+      }
+
       const url = editProjectId
         ? `${serverUrl}/project/update/${editProjectId}`
         : `${serverUrl}/project/addProject`;
 
       const method = editProjectId ? "PUT" : "POST";
 
-      const res = await fetch(url, {
+      const response = await fetch(url, {
         method,
         body: data,
       });
 
-      const result = await res.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
       console.log("Project saved:", result);
       handleCancel();
       await fetchProjects();
@@ -99,12 +113,12 @@ const ProjectManagerForm = () => {
 
   const handleEditClick = (project: any) => {
     setFormData({
-      title: project.title,
-      description: project.description,
-      footerText: project.footerText,
-      techStack: project.techStack,
-      technologiesUsed: project.technologiesUsed,
-      projectUrl: project.projectUrl,
+      title: project.title || "",
+      description: project.description || "",
+      footerText: project.footerText || "",
+      techStack: project.techStack || "",
+      technologiesUsed: project.technologiesUsed || "",
+      projectUrl: project.projectUrl || "",
       imageUrl: project.imageUrl || "",
       imageFile: null,
     });
@@ -182,6 +196,10 @@ const ProjectManagerForm = () => {
             >
               View Project
             </a>
+            {project.imageDataUrl && (
+              // eslint-disable-next-line
+              <img src={project.imageDataUrl} alt="project" className="w-full mt-2 rounded" />
+            )}
 
             <div className="flex gap-3 mt-4">
               <button

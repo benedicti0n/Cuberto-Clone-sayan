@@ -62,6 +62,7 @@ const getImageUrl = (skill: Skill) => {
 
 const MovieSwiper: React.FC = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
+  // eslint-disable-next-line
   const [showSection, setShowSection] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -136,9 +137,8 @@ const MovieSwiper: React.FC = () => {
               >
                 {/* Conditional gradient overlay - only show on non-active slides */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 transition-opacity duration-500 ${
-                    index === activeIndex ? "opacity-0" : "opacity-100"
-                  }`}
+                  className={`absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 transition-opacity duration-500 ${index === activeIndex ? "opacity-0" : "opacity-100"
+                    }`}
                 ></div>
               </div>
 

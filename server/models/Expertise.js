@@ -15,7 +15,7 @@ const expertiseSchema = new mongoose.Schema({
     },
     backgroundImage: {
         type: String,
-        required: true
+        required: false
     },
     imageData: {
         type: Buffer,

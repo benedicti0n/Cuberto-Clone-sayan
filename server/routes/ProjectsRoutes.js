@@ -4,23 +4,18 @@ const { addProject, getAllProjects, deleteProject, updateProject } = require("..
 
 const router = express.Router();
 
-// Set up storage for multer
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "uploads/"); // Make sure this folder exists
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + "_" + file.originalname;
-        cb(null, uniqueSuffix);
-    },
+// Configure multer for memory storage (for buffer)
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    }
 });
 
-const upload = multer({ storage });
-
 // Route to handle form data and optional image file
-router.post("/addProject", upload.single("imageFile"), addProject);
+router.post("/addProject", upload.single("image"), addProject);
 router.get("/getAll", getAllProjects)
 router.delete("/delete/:id", deleteProject);
-router.put("/update/:id", upload.single("imageFile"), updateProject);
+router.put("/update/:id", upload.single("image"), updateProject);
 
 module.exports = router;
