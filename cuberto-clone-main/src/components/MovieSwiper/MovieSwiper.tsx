@@ -138,6 +138,7 @@ const MovieSwiper: React.FC = () => {
               key={skill._id}
               className="relative w-full h-full overflow-hidden shadow-lg swiper-slide-content transition-all duration-500 -mx-1"
             >
+              {/* eslint-disable-next-line */}
               <img
                 src={getImageUrl(skill)}
                 alt={skill.title}
