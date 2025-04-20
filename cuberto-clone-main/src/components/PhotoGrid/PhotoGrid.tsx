@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faCircleInfo, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
-// import { fetchContent, setupContentPolling } from '@/utils/contentSync';
 
 interface Project {
   _id: string;
@@ -12,7 +11,8 @@ interface Project {
   footerText: string;
   techStack: string;
   technologiesUsed: string;
-  imageUrl: string;
+  imageUrl?: string;
+  imageDataUrl?: string;
   projectUrl: string;
 }
 
@@ -117,10 +117,10 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
             className="relative overflow-hidden transition-all duration-300 hover:opacity-95 h-[500px] md:h-[500px] lg:h-[650px] xl:h-[585px]"
           >
             <div className="absolute inset-0 flex items-center justify-center z-0">
-              {project.imageUrl ? (
+              {(project.imageUrl || project.imageDataUrl) ? (
                 // eslint-disable-next-line
                 <img
-                  src={project.imageUrl}
+                  src={project.imageDataUrl || project.imageUrl}
                   alt={project.title}
                   className="w-full h-full object-contain transition-all duration-500"
                   loading="lazy"

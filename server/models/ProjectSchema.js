@@ -11,7 +11,14 @@ const projectSchema = new mongoose.Schema(
     techStack: String,
     technologiesUsed: String,
     projectUrl: String,
-    imageUrl: String, // Can be URL or local path to uploaded image
+    imageUrl: String,
+    imageFile: String,
+    imageBuffer: Buffer,
+    imageType: {
+      type: String,
+      enum: ['url', 'buffer'],
+      default: 'url'
+    }
   },
   { timestamps: true }
 );

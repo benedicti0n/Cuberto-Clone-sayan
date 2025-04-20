@@ -13,7 +13,7 @@ interface ContactFormProps {
   isVisible: boolean;
   onClose: () => void;
 }
-// eslint-disable-next-line
+
 const ContactForm: React.FC<ContactFormProps> = ({ isVisible, onClose }) => {
   const [isOtpSent, setIsOtpSent] = useState<boolean>(false);
   const [otpLoading, setOtpLoading] = useState<boolean>(false);
