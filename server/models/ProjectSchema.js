@@ -11,14 +11,7 @@ const projectSchema = new mongoose.Schema(
     techStack: String,
     technologiesUsed: String,
     projectUrl: String,
-    imageUrl: String,
-    imageFile: String,
-    imageBuffer: Buffer,
-    imageType: {
-      type: String,
-      enum: ['url', 'buffer'],
-      default: 'url'
-    }
+    imageUrl: String
   },
   { timestamps: true }
 );
