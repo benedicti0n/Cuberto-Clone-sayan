@@ -17,10 +17,6 @@ const expertiseSchema = new mongoose.Schema({
         type: String,
         required: false
     },
-    imageData: {
-        type: Buffer,
-        required: false
-    },
     proficiencyLevel: {
         type: Number,
         required: true,
