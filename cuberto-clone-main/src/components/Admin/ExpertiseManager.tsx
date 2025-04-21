@@ -1,40 +1,29 @@
 "use client";
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-
-type ImageData = {
-  type: "Buffer";
-  data: number[];
-};
 
 interface ExpertiseFormData {
   title: string;
   description: string;
   icon: string;
-  backgroundImage?: string | any;
+  backgroundImage: string;
   proficiencyLevel: number;
   learnMoreLink: string;
-  imageData?: ImageData | null;
   _id?: string;
 }
 
 export default function ExpertiseManager() {
-  const [skills, setSkills] = useState<any[]>([]);
+  const [skills, setSkills] = useState<ExpertiseFormData[]>([]);
   const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<ExpertiseFormData>({
     title: "",
     description: "",
     icon: "",
     backgroundImage: "",
-    imageData: null,
     proficiencyLevel: 0,
     learnMoreLink: "",
   });
@@ -52,45 +41,23 @@ export default function ExpertiseManager() {
     });
   };
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUploadingImage(true);
-    setUploadProgress(0);
 
     try {
-      const uploadFormData = new FormData();
-
-      if (selectedFile) {
-        uploadFormData.append("image", selectedFile);
-      }
-      uploadFormData.append("title", formData.title);
-      uploadFormData.append("description", formData.description);
-      uploadFormData.append("icon", formData.icon);
-      uploadFormData.append("proficiencyLevel", formData.proficiencyLevel.toString());
-      uploadFormData.append("learnMoreLink", formData.learnMoreLink);
-      uploadFormData.append("backgroundImage", formData.backgroundImage);
-
       if (editingId) {
-        // 🛠️ Update skill
+        // Update skill
         const res = await axios.put(
           `${serverUrl}/expertise/${editingId}`,
-          uploadFormData,
+          formData,
           {
             headers: {
-              "Content-Type": "multipart/form-data",
-            },
-            onUploadProgress: (progressEvent) => {
-              if (progressEvent.total) {
-                const progress = Math.round(
-                  (progressEvent.loaded * 100) / progressEvent.total
-                );
-                setUploadProgress(progress);
-              }
+              "Content-Type": "application/json",
             },
           }
         );
@@ -99,42 +66,29 @@ export default function ExpertiseManager() {
 
         setSkills((prev) =>
           prev.map((skill) =>
-            skill.id === editingId || skill._id === editingId
-              ? { ...res.data, id: res.data._id }
-              : skill
+            skill._id === editingId ? res.data : skill
           )
         );
       } else {
         // Add new skill
         const res = await axios.post(
           `${serverUrl}/expertise/addExpertise`,
-          uploadFormData,
+          formData,
           {
             headers: {
-              "Content-Type": "multipart/form-data",
-            },
-            onUploadProgress: (progressEvent) => {
-              if (progressEvent.total) {
-                const progress = Math.round(
-                  (progressEvent.loaded * 100) / progressEvent.total
-                );
-                setUploadProgress(progress);
-              }
+              "Content-Type": "application/json",
             },
           }
         );
 
-        const createdSkill = res.data;
+        const createdSkill = res.data.expertise;
         setSkills((prev) => [...prev, createdSkill]);
       }
 
       setIsAdding(false);
       setEditingId(null);
-      setSelectedFile(null);
-      setUploadingImage(false);
     } catch (error) {
       console.error("Error submitting skill:", error);
-      setUploadingImage(false);
     }
   };
 
@@ -143,7 +97,7 @@ export default function ExpertiseManager() {
     setEditingId(null);
   };
 
-  const handleEdit = (skill: any) => {
+  const handleEdit = (skill: ExpertiseFormData) => {
     setFormData(skill);
     setEditingId(skill._id);
     setIsAdding(true);
@@ -160,43 +114,16 @@ export default function ExpertiseManager() {
       }
     } catch (error) {
       console.error("Error deleting skill:", error);
-      // Optionally: show toast or error message
     }
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: any) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // If it's a URL input (not a file upload)
-    if (typeof file === "string") {
-      setFormData((prev) => ({
-        ...prev,
-        backgroundImage: file,
-      }));
-      return;
-    }
-
-    setSelectedFile(file);
-    setFormData(prev => ({
-      ...prev,
-      backgroundImage: URL.createObjectURL(file)
-    }));
   };
 
   useEffect(() => {
     const fetchExpertise = async () => {
       try {
         const res = await axios.get(`${serverUrl}/expertise/all`);
-        // @ts-expect-error any-type
-        setSkills(res.data.map((item) => ({ ...item, id: item._id })));
+        setSkills(res.data);
       } catch (error) {
         console.error("Error fetching skills:", error);
-        // Optional: toast error
       }
     };
 
@@ -254,52 +181,18 @@ export default function ExpertiseManager() {
           </div>
 
           <div>
-            <label className="block font-medium">Background Image:</label>
-            <div className="flex items-center gap-4">
-              <input
-                type="text"
-                name="backgroundImage"
-                value={formData.backgroundImage}
-                onChange={handleInputChange}
-                className="w-full border rounded-md p-2"
-                placeholder="Enter image URL or upload"
-              />
-              <button
-                type="button"
-                onClick={triggerFileInput}
-                className="px-3 py-2 bg-gray-700 text-white rounded-md disabled:opacity-50"
-                disabled={uploadingImage}
-              >
-                {uploadingImage ? "Uploading..." : "Upload"}
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                className="hidden"
-              />
-            </div>
-            {uploadingImage && (
-              <div className="w-full bg-gray-200 h-3 mt-2 rounded">
-                <div
-                  className="h-3 bg-green-500 rounded"
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
-              </div>
-            )}
+            <label className="block font-medium">Background Image URL:</label>
+            <input
+              type="text"
+              name="backgroundImage"
+              value={formData.backgroundImage}
+              onChange={handleInputChange}
+              className="w-full border rounded-md p-2 mt-1"
+              placeholder="Enter image URL"
+            />
             {formData.backgroundImage && (
-              // eslint-disable-next-line
               <img
-                src={
-                  formData?.backgroundImage?.startsWith("http")
-                    ? formData.backgroundImage
-                    : formData.imageData?.data
-                      ? `data:image/png;base64,${Buffer.from(
-                        formData.imageData.data
-                      ).toString("base64")}`
-                      : `${serverUrl}/expertise/image/${formData._id}`
-                }
+                src={formData.backgroundImage}
                 alt="Preview"
                 className="mt-2 rounded-md max-h-40 object-cover"
               />
@@ -335,14 +228,14 @@ export default function ExpertiseManager() {
           <div className="flex items-center gap-4">
             <button
               type="submit"
-              className="px-4 py-2 bg-green-600 text-white rounded-md"
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
             >
               {editingId ? "Update Skill" : "Add Skill"}
             </button>
             <button
               type="button"
               onClick={handleCancel}
-              className="px-4 py-2 bg-gray-500 text-white rounded-md"
+              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
             >
               Cancel
             </button>
@@ -362,14 +255,7 @@ export default function ExpertiseManager() {
                 <div
                   className="h-32 bg-cover bg-center"
                   style={{
-                    backgroundImage: `url(${skill.backgroundImage?.startsWith("http")
-                      ? skill.backgroundImage
-                      : skill.imageData?.data
-                        ? `data:image/png;base64,${Buffer.from(
-                          skill.imageData.data
-                        ).toString("base64")}`
-                        : `${serverUrl}/expertise/image/${skill._id}`
-                      })`,
+                    backgroundImage: `url(${skill.backgroundImage})`,
                   }}
                 ></div>
                 <div className="p-4">
@@ -392,13 +278,13 @@ export default function ExpertiseManager() {
                   <div className="flex justify-between mt-4">
                     <button
                       onClick={() => handleEdit(skill)}
-                      className="px-3 py-1 bg-yellow-500 text-white text-sm rounded-md"
+                      className="px-3 py-1 bg-yellow-500 text-white text-sm rounded-md hover:bg-yellow-600"
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(skill._id)}
-                      className="px-3 py-1 bg-red-600 text-white text-sm rounded-md"
+                      onClick={() => handleDelete(skill._id!)}
+                      className="px-3 py-1 bg-red-600 text-white text-sm rounded-md hover:bg-red-700"
                     >
                       Delete
                     </button>

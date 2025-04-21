@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay, Navigation } from "swiper/modules";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -13,11 +13,6 @@ import axios from "axios";
 // Add all Font Awesome icons to the library
 library.add(fas, fab);
 
-type ImageData = {
-  type: "Buffer";
-  data: number[];
-};
-
 interface Skill {
   _id: number;
   title: string;
@@ -25,75 +20,64 @@ interface Skill {
   icon: any;
   backgroundImage: string;
   proficiencyLevel: number;
-  imageData?: ImageData;
   learnMoreLink: string;
 }
 
 const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-
-// Helper function to convert buffer data to base64 string
-const arrayBufferToBase64 = (buffer: any) => {
-  if (!buffer || !Array.isArray(buffer)) return "";
-
-  let binary = "";
-  const bytes = new Uint8Array(buffer);
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return window.btoa(binary);
-};
+const DEFAULT_PLACEHOLDER = "/path/to/default/placeholder.jpg"; // replace with your default placeholder image
 
 // Function to get the appropriate image URL
 const getImageUrl = (skill: Skill) => {
-  // If it's a URL
   if (skill.backgroundImage?.startsWith("http")) {
     return skill.backgroundImage;
   }
-
-  // If we have image data as buffer
-  if (skill.imageData?.data && Array.isArray(skill.imageData.data)) {
-    return `data:image/png;base64,${arrayBufferToBase64(skill.imageData.data)}`;
-  }
-
-  // Fallback to server endpoint
-  return `${serverUrl}/expertise/image/${skill._id}`;
+  return DEFAULT_PLACEHOLDER;
 };
-
-const DEFAULT_PLACEHOLDER = "/path/to/default/placeholder.jpg"; // replace with your default placeholder image
 
 const MovieSwiper: React.FC = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
-  // eslint-disable-next-line
-  const [showSection, setShowSection] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Handle slide change to track the active index
-  const handleSlideChange = (swiper: any) => {
-    setActiveIndex(swiper.realIndex);
-  };
-
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  // Memoize the handleImageError function
+  const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     console.error('Image failed to load:', e.currentTarget.src);
     e.currentTarget.src = DEFAULT_PLACEHOLDER;
-  };
-
-  const fetchExpertise = async () => {
-    try {
-      const res = await axios.get(`${serverUrl}/expertise/all`);
-      // @ts-expect-error any-type
-      setSkills(res.data.map((item) => ({ ...item, id: item._id })));
-    } catch (error) {
-      console.error("Error fetching skills:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchExpertise();
   }, []);
 
-  // If no skills to show, don't render the section at all
-  if (!showSection || skills.length === 0) {
+  // Memoize the handleSlideChange function
+  const handleSlideChange = useCallback((swiper: any) => {
+    setActiveIndex(swiper.realIndex);
+  }, []);
+
+  useEffect(() => {
+    const fetchExpertise = async () => {
+      try {
+        setIsLoading(true);
+        const res = await axios.get(`${serverUrl}/expertise/all`);
+        setSkills(res.data);
+        setError(null);
+      } catch (error) {
+        console.error("Error fetching skills:", error);
+        setError("Failed to load skills");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExpertise();
+  }, []); // Empty dependency array since we only want to fetch once on mount
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (skills.length === 0) {
     return null;
   }
 
