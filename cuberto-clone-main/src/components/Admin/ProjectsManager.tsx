@@ -13,7 +13,6 @@ const ProjectManagerForm = () => {
     technologiesUsed: "",
     projectUrl: "",
     imageUrl: "",
-    imageFile: null as File | null,
   });
 
   const [projects, setProjects] = useState([]);
@@ -36,18 +35,7 @@ const ProjectManagerForm = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    // Clear the other image type when one is set
-    if (name === 'imageUrl' && value) {
-      setFormData(prev => ({ ...prev, [name]: value, imageFile: null }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    // Clear imageUrl when file is selected
-    setFormData(prev => ({ ...prev, imageFile: file, imageUrl: "" }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleCancel = () => {
@@ -59,7 +47,6 @@ const ProjectManagerForm = () => {
       technologiesUsed: "",
       projectUrl: "",
       imageUrl: "",
-      imageFile: null,
     });
     setEditProjectId(null);
   };
@@ -69,21 +56,6 @@ const ProjectManagerForm = () => {
     setIsSaving(true);
 
     try {
-      const data = new FormData();
-      data.append("title", formData.title);
-      data.append("description", formData.description);
-      data.append("footerText", formData.footerText);
-      data.append("techStack", formData.techStack);
-      data.append("technologiesUsed", formData.technologiesUsed);
-      data.append("projectUrl", formData.projectUrl);
-
-      // Handle image data - using 'image' to match backend multer configuration
-      if (formData.imageUrl) {
-        data.append("imageUrl", formData.imageUrl);
-      } else if (formData.imageFile) {
-        data.append("image", formData.imageFile); // Changed from 'file' to 'image' to match multer config
-      }
-
       const url = editProjectId
         ? `${serverUrl}/project/update/${editProjectId}`
         : `${serverUrl}/project/addProject`;
@@ -92,7 +64,10 @@ const ProjectManagerForm = () => {
 
       const response = await fetch(url, {
         method,
-        body: data,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
@@ -120,7 +95,6 @@ const ProjectManagerForm = () => {
       technologiesUsed: project.technologiesUsed || "",
       projectUrl: project.projectUrl || "",
       imageUrl: project.imageUrl || "",
-      imageFile: null,
     });
     setEditProjectId(project._id);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -149,16 +123,25 @@ const ProjectManagerForm = () => {
         <input name="techStack" value={formData.techStack} onChange={handleChange} placeholder="Technology Stack" className="w-full border p-2 rounded" />
         <input name="technologiesUsed" value={formData.technologiesUsed} onChange={handleChange} placeholder="Technologies Used" className="w-full border p-2 rounded" />
         <input name="projectUrl" value={formData.projectUrl} onChange={handleChange} placeholder="Project URL" className="w-full border p-2 rounded" />
-        <input name="imageUrl" value={formData.imageUrl} onChange={handleChange} placeholder="Project Image (URL)" className="w-full border p-2 rounded" />
-        <input type="file" onChange={handleFileUpload} className="w-full border p-2 rounded" />
+        <input name="imageUrl" value={formData.imageUrl} onChange={handleChange} placeholder="Image URL" className="w-full border p-2 rounded" />
 
-        <div className="flex gap-4">
-          <button type="submit" disabled={isSaving} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            {editProjectId ? "Update Project" : "Add Project"}
+        <div className="flex space-x-4">
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : editProjectId ? "Update Project" : "Add Project"}
           </button>
-          <button type="button" onClick={handleCancel} className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400">
-            Cancel
-          </button>
+          {editProjectId && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </form>
 
@@ -196,10 +179,6 @@ const ProjectManagerForm = () => {
             >
               View Project
             </a>
-            {project.imageDataUrl && (
-              // eslint-disable-next-line
-              <img src={project.imageDataUrl} alt="project" className="w-full mt-2 rounded" />
-            )}
 
             <div className="flex gap-3 mt-4">
               <button

@@ -11,9 +11,7 @@ interface Project {
   footerText: string;
   techStack: string;
   technologiesUsed: string;
-  imageUrl?: string;
-  imageData?: { data: any };
-  imageDataUrl?: string;
+  imageUrl: string;
   projectUrl: string;
 }
 
@@ -101,33 +99,11 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
   // Use only inline SVG data URL as fallback
   const DEFAULT_PLACEHOLDER = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"%3E%3Crect width="200" height="200" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="20" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E';
 
-  // Helper function to convert buffer data to base64 string
-  const arrayBufferToBase64 = (buffer: any) => {
-    if (!buffer || !Array.isArray(buffer)) return "";
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
-  };
-
   // Function to get the appropriate image URL
   const getImageUrl = (project: Project) => {
     // If it's a URL
     if (project.imageUrl?.startsWith("http")) {
       return project.imageUrl;
-    }
-
-    // If we have image data as buffer
-    if (project.imageData?.data && Array.isArray(project.imageData.data)) {
-      return `data:image/png;base64,${arrayBufferToBase64(project.imageData.data)}`;
-    }
-
-    // If we have base64 data URL
-    if (project.imageDataUrl) {
-      return project.imageDataUrl;
     }
 
     // Fallback to server endpoint
@@ -156,7 +132,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
             className="relative overflow-hidden transition-all duration-300 hover:opacity-95 h-[500px] md:h-[500px] lg:h-[650px] xl:h-[585px]"
           >
             <div className="absolute inset-0 flex items-center justify-center z-0">
-              {(project.imageUrl || project.imageDataUrl || project.imageData) ? (
+              {(project.imageUrl) ? (
                 // eslint-disable-next-line
                 <img
                   src={getImageUrl(project)}
