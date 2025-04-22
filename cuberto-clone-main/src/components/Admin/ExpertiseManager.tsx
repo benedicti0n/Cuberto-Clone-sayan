@@ -99,7 +99,7 @@ export default function ExpertiseManager() {
 
   const handleEdit = (skill: ExpertiseFormData) => {
     setFormData(skill);
-    setEditingId(skill._id);
+    setEditingId(skill._id || null);
     setIsAdding(true);
   };
 
@@ -191,6 +191,7 @@ export default function ExpertiseManager() {
               placeholder="Enter image URL"
             />
             {formData.backgroundImage && (
+              //eslint-disable-next-line
               <img
                 src={formData.backgroundImage}
                 alt="Preview"
