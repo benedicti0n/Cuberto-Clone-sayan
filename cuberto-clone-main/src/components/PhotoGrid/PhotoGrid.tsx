@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, forwardRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faCircleInfo, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faCircleInfo, faCircleXmark, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { useSkeletonLoader } from '@/lib/hooks';
+import { GridSkeleton } from '@/components/SkeletonLoaders';
 
 interface Project {
   _id: string;
@@ -17,11 +19,13 @@ interface Project {
 
 interface PhotoGridProps {
   photos?: Project[];
+  setActiveButtonIndex?: (index: number | null) => void;
 }
 
 const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
-const PhotoGrid: React.FC<PhotoGridProps> = () => {
+const PhotoGrid = forwardRef<{ viewProjectRefs: React.MutableRefObject<(HTMLDivElement | null)[]> }, PhotoGridProps>(
+  ({ setActiveButtonIndex }, ref) => {
   const [projects, setProjects] = useState<Project[]>([]);
   // eslint-disable-next-line
   const [showSection, setShowSection] = useState(true);
@@ -29,18 +33,51 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
   const [isMobile, setIsMobile] = useState(false);
   //eslint-disable-next-line
   const [isClient, setIsClient] = useState(false);
+  
+  // Create an array of refs for each project's View Project button
+  const viewProjectRefs = useRef<(HTMLDivElement | null)[]>([]);
+  
+  // Expose viewProjectRefs to parent component
+  React.useImperativeHandle(ref, () => ({
+    viewProjectRefs
+  }));
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  // Update refs array when projects change
+  useEffect(() => {
+    // Initialize or resize the refs array to match the projects length
+    viewProjectRefs.current = viewProjectRefs.current.slice(0, projects.length);
+    while (viewProjectRefs.current.length < projects.length) {
+      viewProjectRefs.current.push(null);
+    }
+  }, [projects]);
+
+  // Handle mouse enter/leave for the view project buttons
+  const handleViewProjectMouseEnter = (index: number) => {
+    if (!isMobile && setActiveButtonIndex) {
+      setActiveButtonIndex(index);
+    }
+  };
+
+  const handleViewProjectMouseLeave = () => {
+    if (!isMobile && setActiveButtonIndex) {
+      setActiveButtonIndex(null);
+    }
+  };
+
+  // Replace the actual fetch function
   const fetchProjects = async () => {
     try {
       const res = await fetch(`${serverUrl}/project/getAll`);
       const data = await res.json();
       setProjects(data);
+      return data;
     } catch (err) {
       console.error("Failed to fetch projects:", err);
+      return [];
     }
   };
 
@@ -173,20 +210,31 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
               </div>
 
               {project.projectUrl && (
-                <a
-                  href={project.projectUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute flex items-center justify-center w-16 h-16 rounded-full transition-all hover:bg-blue-600"
-                  style={{
-                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)'
+                <div
+                  ref={el => {
+                    viewProjectRefs.current[index] = el;
+                    return undefined;
                   }}
+                  className="absolute top-0 right-0 w-16 h-16 flex items-start justify-end p-4 cursor-pointer"
+                  onMouseEnter={() => handleViewProjectMouseEnter(index)}
+                  onMouseLeave={handleViewProjectMouseLeave}
                 >
-                  <FontAwesomeIcon icon={faPlay} className="text-white text-2xl" />
-                </a>
+                  <a
+                    href={project.projectUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center w-8 h-8 rounded-full transition-all shadow-sm"
+                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
+                  >
+                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-white">
+                      <FontAwesomeIcon 
+                        icon={faArrowRight} 
+                        className="text-blue-600 text-xs" 
+                        style={{ transform: 'rotate(-45deg)' }}
+                      />
+                    </div>
+                  </a>
+                </div>
               )}
 
               <h3 className="text-3xl font-semibold mb-1 text-white">{project.title}</h3>
@@ -254,6 +302,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = () => {
       </div>
     </section>
   );
-};
+});
 
+PhotoGrid.displayName = 'PhotoGrid';
 export default PhotoGrid;

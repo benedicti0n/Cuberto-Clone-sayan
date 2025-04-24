@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fab } from '@fortawesome/free-brands-svg-icons';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import type { SwiperRef } from 'swiper/react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -71,17 +73,24 @@ export default function ExpertiseSection() {
     }
   ]);
 
+  const swiperRef = useRef<SwiperRef>(null);
+
   return (
-    <section className="expertise-section" id="expertise">
+    <section className="expertise-section relative" id="expertise">
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         spaceBetween={15}
         slidesPerView={1}
-        navigation
+        navigation={false}
         pagination={{ clickable: true }}
         autoplay={{ delay: 5000, disableOnInteraction: false }}
         loop={true}
+        speed={600}
+        threshold={10}
+        followFinger={true}
+        grabCursor={true}
         className="w-full h-[497px] md:h-[550px] lg:h-[650px] px-6 max-w-full mx-auto"
+        ref={swiperRef}
       >
         {skills.map((skill) => (
           <SwiperSlide key={skill.id} className="swiper-slide-content relative w-full h-full overflow-hidden shadow-lg transition-all duration-500">
@@ -153,6 +162,24 @@ export default function ExpertiseSection() {
           </SwiperSlide>
         ))}
       </Swiper>
+      
+      {/* Custom Navigation Arrows */}
+      <div className="absolute top-1/2 left-0 transform -translate-y-1/2 w-full flex justify-between px-4 z-20 pointer-events-none">
+        <button 
+          onClick={() => swiperRef.current?.swiper.slidePrev()} 
+          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center justify-center transform transition hover:scale-110 hover:bg-white/30 pointer-events-auto focus:outline-none"
+          aria-label="Previous slide"
+        >
+          <FontAwesomeIcon icon={['fas', 'chevron-left']} className="w-4 h-4 md:w-5 md:h-5" />
+        </button>
+        <button 
+          onClick={() => swiperRef.current?.swiper.slideNext()}
+          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center justify-center transform transition hover:scale-110 hover:bg-white/30 pointer-events-auto focus:outline-none"
+          aria-label="Next slide"
+        >
+          <FontAwesomeIcon icon={['fas', 'chevron-right']} className="w-4 h-4 md:w-5 md:h-5" />
+        </button>
+      </div>
     </section>
   );
 }

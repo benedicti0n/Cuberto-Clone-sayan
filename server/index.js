@@ -24,7 +24,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // CORS config
 app.use(cors({
-  origin: ['https://cuberto-clone-sayan.vercel.app', "http://localhost:3000"],
+  origin: ['https://www.sayanbanik.site','https://portfolio-phi-jet-19.vercel.app', "http://localhost:3000"],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
