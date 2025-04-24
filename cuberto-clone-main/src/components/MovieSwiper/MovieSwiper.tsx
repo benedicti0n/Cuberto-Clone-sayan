@@ -9,6 +9,8 @@ import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import axios from "axios";
+import { useSkeletonLoader } from '@/lib/hooks';
+import { VideoSkeleton } from '@/components/SkeletonLoaders';
 
 // Add all Font Awesome icons to the library
 library.add(fas, fab);
@@ -37,7 +39,6 @@ const getImageUrl = (skill: Skill) => {
 const MovieSwiper: React.FC = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Memoize the handleImageError function
@@ -51,39 +52,35 @@ const MovieSwiper: React.FC = () => {
     setActiveIndex(swiper.realIndex);
   }, []);
 
+  // Fetch function for expertise skills
+  const fetchExpertise = async () => {
+    try {
+      const res = await axios.get(`${serverUrl}/expertise/all`);
+      setSkills(res.data);
+      setError(null);
+      return res.data;
+    } catch (error) {
+      console.error("Error fetching skills:", error);
+      setError("Failed to load skills");
+      return [];
+    }
+  };
+
   useEffect(() => {
-    const fetchExpertise = async () => {
-      try {
-        setIsLoading(true);
-        const res = await axios.get(`${serverUrl}/expertise/all`);
-        setSkills(res.data);
-        setError(null);
-      } catch (error) {
-        console.error("Error fetching skills:", error);
-        setError("Failed to load skills");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchExpertise();
-  }, []); // Empty dependency array since we only want to fetch once on mount
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  }, []);
 
   if (error) {
     return <div>Error: {error}</div>;
   }
-
+  
   if (skills.length === 0) {
     return null;
   }
 
   return (
     <>
-      <section className="w-full relative z-10 bg-white" id="skillsSlider">
+      <section className="w-full relative z-10" id="skillsSlider">
         <Swiper
           slidesPerView={1.3}
           breakpoints={{
@@ -196,7 +193,7 @@ const MovieSwiper: React.FC = () => {
       </section>
 
       {/* Pagination placed in the gap between expertise and verified sections */}
-      <div className="w-full py-2 bg-white">
+      <div className="w-full py-2">
         <div className="swiper-custom-pagination flex justify-center items-center my-2">
           {/* Pagination bullets will be inserted here by Swiper */}
         </div>

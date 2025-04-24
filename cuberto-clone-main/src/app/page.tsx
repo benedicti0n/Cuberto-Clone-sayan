@@ -12,6 +12,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import VideoHeader from '@/components/VideoHeader/VideoHeader';
 import ScrollAnimation from '@/components/ScrollAnimation/ScrollAnimation';
+import SectionLoader from '@/components/SectionLoader';
+import { GridSkeleton, VideoSkeleton } from '@/components/SkeletonLoaders';
 import axios from "axios";
 
 const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
@@ -27,6 +29,9 @@ interface AcademicResult {
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const stickyElement = useRef<HTMLDivElement>(null);
+  const photoGridRef = useRef<{
+    viewProjectRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
+  } | null>(null);
   // eslint-disable-next-line
   const [isMobile, setIsMobile] = useState(false);
   const [activeAccordion, setActiveAccordion] = useState<string | null>(null);
@@ -36,11 +41,30 @@ export default function Home() {
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [results, setResults] = useState<AcademicResult[]>([]);
   const [content, setContent] = useState<{ aboutText: string }>({ aboutText: '' });
+  
+  const [activeButtonIndex, setActiveButtonIndex] = useState<number | null>(null);
 
   const [cursorState] = useState({
     isHoveringOnVideo: false,
     isVideoPlaying: false
   })
+
+  // Check for dark mode preference
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // Set dark mode based on system preference
+  useEffect(() => {
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDarkMode(darkModeQuery.matches);
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsDarkMode(e.matches);
+    };
+    
+    darkModeQuery.addEventListener('change', handleChange);
+    return () => darkModeQuery.removeEventListener('change', handleChange);
+  }, []);
+
   const toggleAccordion = (section: string) => {
     setActiveAccordion(activeAccordion === section ? null : section);
   };
@@ -146,10 +170,30 @@ export default function Home() {
     return true;
   };
 
+  const getCurrentActiveButtonElement = () => {
+    if (activeButtonIndex !== null && photoGridRef.current?.viewProjectRefs.current) {
+      return photoGridRef.current.viewProjectRefs.current[activeButtonIndex];
+    }
+    return null;
+  };
+
+  const getActiveStickyElement = () => {
+    const activeButton = getCurrentActiveButtonElement();
+    if (activeButton) {
+      return { current: activeButton };
+    }
+    return stickyElement;
+  };
+
   return (
     <div className="w-full min-h-screen overflow-x-hidden">
       <NavHeader ref={stickyElement} onClick={() => setIsOpen((prev) => !prev)} />
       <SideNav isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <Cursor 
+        stickyElement={getActiveStickyElement()} 
+        isHoveringOnVideo={cursorState.isHoveringOnVideo}
+        isVideoPlaying={cursorState.isVideoPlaying}
+      />
 
       <div className="relative">
         <ScrollAnimation>
@@ -162,13 +206,42 @@ export default function Home() {
 
       <div className="relative pt-6" id="projects">
         <ScrollAnimation direction="fade" delay={0.2}>
-          <PhotoGrid />
+          <SectionLoader 
+            skeleton={
+              <div className="w-full bg-white">
+                <GridSkeleton columns={2} count={4} className="p-4 gap-6" isDark={isDarkMode} />
+              </div>
+            }
+            minLoadTime={1200}
+            isDark={isDarkMode}
+          >
+            <PhotoGrid ref={photoGridRef} setActiveButtonIndex={setActiveButtonIndex} />
+          </SectionLoader>
         </ScrollAnimation>
       </div>
 
       <div className="relative mb-0 pt-2">
         <ScrollAnimation direction="up" delay={0.3}>
-          <MovieSwiper />
+          <SectionLoader 
+            skeleton={
+              <section className="w-full relative z-10 shiny-effect" id="skillsSkeletonLoader">
+                <div className="w-full h-[497px] md:h-[550px] lg:h-[650px] px-6 max-w-full">
+                  <VideoSkeleton className="h-full rounded-lg" isDark={isDarkMode} />
+                  <div className="mt-3 flex justify-center">
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((_, i) => (
+                        <div key={i} className="w-3 h-3 rounded-full bg-gray-300"></div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </section>
+            }
+            minLoadTime={1000}
+            isDark={isDarkMode}
+          >
+            <MovieSwiper />
+          </SectionLoader>
         </ScrollAnimation>
       </div>
 
@@ -343,12 +416,6 @@ export default function Home() {
       <div className="relative">
         <Socials />
       </div>
-
-      <Cursor
-        stickyElement={stickyElement}
-        isHoveringOnVideo={cursorState.isHoveringOnVideo}
-        isVideoPlaying={cursorState.isVideoPlaying}
-      />
     </div>
   );
 }

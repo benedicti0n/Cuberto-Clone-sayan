@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { VelocityScroll } from '../ui/magicui/scroll-based-velocity'
 import CircularPing from '../ui/CircularPing'
 import { ArrowUpRight } from 'lucide-react'
@@ -16,12 +16,52 @@ const socials = [
 ]
 
 const Socials = () => {
+    const [velocitySpeed, setVelocitySpeed] = useState(25);
+    
+    // Adjust velocity based on screen size
+    useEffect(() => {
+        const handleResize = () => {
+            const width = window.innerWidth;
+            if (width < 640) {
+                setVelocitySpeed(15); // Slower on mobile
+            } else if (width < 1024) {
+                setVelocitySpeed(20); // Medium on tablets
+            } else {
+                setVelocitySpeed(25); // Normal on desktop
+            }
+        };
+        
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Create array of repeated content items - reduced to 8 for better performance
+    const repeatedContent = Array(6).fill(0);
+
     return (
         <div className='w-full min-h-screen bg-black pt-12 sm:pt-16 md:pt-20 lg:pt-28 xl:pt-32'>
-            <VelocityScroll numRows={1} defaultVelocity={100}>
-                <h1 className='text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[12rem] text-white font-regular px-4 sm:px-6 md:px-10 tracking-tighter'>Follow Us</h1>
-                <CircularPing />
-            </VelocityScroll>
+            <div className="overflow-hidden">
+                <VelocityScroll 
+                    numRows={1} 
+                    defaultVelocity={150} 
+                    className="w-[800%] flex items-center"
+                >
+                    {repeatedContent.map((_, index) => (
+                        <div 
+                            key={index} 
+                            className="flex items-center whitespace-nowrap gap-8 sm:gap-12 lg:gap-16"
+                            style={{
+                                willChange: 'transform',
+                                transform: 'translateZ(0)'
+                            }}
+                        >
+                            <h1 className='text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[12rem] text-white font-regular tracking-tighter'>Follow Us</h1>
+                            <CircularPing />
+                        </div>
+                    ))}
+                </VelocityScroll>
+            </div>
 
             <div className='w-full'>
                 <h1 className='uppercase text-base sm:text-lg md:text-sm text-white font-light-regular px-4 sm:px-6 md:px-12 lg:px-16 xl:px-20 pt-10 sm:pt-12 md:pt-16 pb-6 sm:pb-8 md:pb-12 border-b-1 border-white/20'>Social media and contacts</h1>
